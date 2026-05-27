@@ -1,117 +1,29 @@
 [
   {
-    "id": "d3ffe2ea-4db0-47ed-b66c-dbd8063fc5a2",
-    "prompt": "",
-    "createdAt": 1779429361431
-  },
-  {
-    "id": 1779429361421,
-    "prompt": "",
-    "openaiText": "",
-    "geminiText": "",
-    "summary": "Mock evaluation based on answer length.",
-    "best_answer": "B",
-    "judge": "mock",
-    "createdAt": "2026-05-22T05:56:01.421Z"
-  },
-  {
-    "id": "ddd712b1-3886-496c-a7ae-77ce17a1b8d9",
-    "prompt": "",
-    "createdAt": 1779429360560
-  },
-  {
-    "id": 1779429360549,
-    "prompt": "",
-    "openaiText": "",
-    "geminiText": "",
-    "summary": "Mock evaluation based on answer length.",
-    "best_answer": "B",
-    "judge": "mock",
-    "createdAt": "2026-05-22T05:56:00.549Z"
-  },
-  {
-    "id": "cfe4c845-6c10-4c4a-aaa7-fe4eaf2307dd",
-    "prompt": "",
-    "createdAt": 1779429360007
-  },
-  {
-    "id": 1779429359993,
-    "prompt": "",
-    "openaiText": "",
-    "geminiText": "",
-    "summary": "Mock evaluation based on answer length.",
-    "best_answer": "B",
-    "judge": "mock",
-    "createdAt": "2026-05-22T05:55:59.993Z"
-  },
-  {
-    "id": "d812f8b3-4d46-41af-9505-569bb7542f73",
-    "prompt": "",
-    "createdAt": 1779429351878
-  },
-  {
-    "id": 1779429351831,
-    "prompt": "",
-    "openaiText": "",
-    "geminiText": "",
-    "summary": "Mock evaluation based on answer length.",
-    "best_answer": "B",
-    "judge": "mock",
-    "createdAt": "2026-05-22T05:55:51.831Z"
-  },
-  {
-    "id": "4c22d502-14b2-475a-ad76-1a1eaa5ab334",
-    "prompt": "",
-    "createdAt": 1779429222719
-  },
-  {
-    "id": 1779429222595,
-    "prompt": "",
-    "openaiText": "",
-    "geminiText": "",
-    "summary": "Mock evaluation based on answer length.",
-    "best_answer": "B",
-    "judge": "openai",
-    "createdAt": "2026-05-22T05:53:42.595Z"
-  },
-  {
-    "id": 1779429222584,
-    "prompt": "",
-    "openaiText": "",
-    "geminiText": "",
-    "summary": "Mock evaluation based on answer length.",
-    "best_answer": "B",
-    "judge": "mock",
-    "createdAt": "2026-05-22T05:53:42.584Z"
-  },
-  {
-    "id": 1779428925250,
-    "prompt": "",
-    "openaiText": "",
-    "geminiText": "",
-    "summary": "Mock evaluation based on answer length.",
-    "best_answer": "B",
-    "judge": "mock",
-    "createdAt": "2026-05-22T05:48:45.250Z"
-  },
-  {
-    "id": 1779428896264,
-    "prompt": "",
-    "openaiText": "",
-    "geminiText": "",
-    "summary": "Mock evaluation based on answer length.",
-    "best_answer": "B",
-    "judge": "mock",
-    "createdAt": "2026-05-22T05:48:16.264Z"
-  },
-  {
-    "id": 1779428891488,
-    "prompt": "",
-    "openaiText": "",
-    "geminiText": "",
-    "summary": "Mock evaluation based on answer length.",
-    "best_answer": "B",
-    "judge": "mock",
-    "createdAt": "2026-05-22T05:48:11.488Z"
+    "id": 1779854140806,
+    "question": "What is AI?\n",
+    "response1": "\nChatGPT response:\nArtificial Intelligence is a system capable of reasoning, learning, and processing information.\n",
+    "response2": "\nGemini response:\nAI refers to machines simulating human intelligence and problem-solving abilities.\n",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both responses discuss AI systems.",
+        "Both answers mention reasoning."
+      ],
+      "contradictions": [
+        "Response styles differ."
+      ],
+      "hallucinationRisk": {
+        "response1": 20,
+        "response2": 35
+      },
+      "reliabilityScore": {
+        "response1": 88,
+        "response2": 80
+      },
+      "bestAnswer": "response1",
+      "finalSynthesis": "Both answers describe AI reasonably well. Response 1 provides slightly clearer reasoning."
+    },
+    "createdAt": "2026-05-27T03:55:40.806Z"
   }
 ]

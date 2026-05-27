@@ -1,0 +1,40 @@
+*** Begin Patch
+*** Update File: c:\Users\Acer\Downloads\Ai-study-app\client\AI-APP\multi-ai-compare\app\api\evaluate\route.ts
+@@
+-    const text = result.response.text();
+-
+-    return NextResponse.json({
+-      evaluation: text,
+-    });
++    const text = await result.response.text();
++
++    return NextResponse.json({
++      evaluation: text,
++    });
+   } catch (error) {
+     console.error("Evaluation API Error:", error);
+@@
+-  }
+-}
+-const testEvaluation = async () => {
+-  const res = await fetch("/api/evaluate", {
+-    method: "POST",
+-    headers: {
+-      "Content-Type": "application/json",
+-    },
+-    body: JSON.stringify({
+-      question: "What is AI?",
+-      response1: "AI is machine intelligence.",
+-      response2: "AI simulates human thinking.",
+-    }),
+-  });
+-
+-  const data = await res.json();
+-
+-  console.log(data);
+-};
+-
+-testEvaluation();
++  }
++}
+*** End Patch

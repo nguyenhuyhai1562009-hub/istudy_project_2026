@@ -19,7 +19,8 @@ export async function GET() {
     const data = fs.readFileSync(filePath, "utf-8");
 
     return NextResponse.json(JSON.parse(data));
-  } catch (err) {
+  } catch (error) {
+    console.error(error);
     return NextResponse.json([]);
   }
 }
