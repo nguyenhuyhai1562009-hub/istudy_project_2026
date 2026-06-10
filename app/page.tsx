@@ -3,23 +3,10 @@
 import Link from "next/link";
 import { useState, useRef } from "react";
 
-type Breakdown = {
-  score: number;
-  feedback: string;
-};
-
-type Annotation = {
-  keyword: string;
-  type: string;
-  context: string;
-  suggestion: string;
-};
-
-type Improvement = {
-  category: string;
-  defect: string;
-  fix: string;
-};
+type Breakdown = { score: number; feedback: string; };
+type Annotation = { keyword: string; type: string; context: string; suggestion: string; };
+type Improvement = { category: string; defect: string; fix: string; };
+type Citation = { claim: string; source: string; reference: string; };
 
 type EvalResult = {
   subject: string;
@@ -33,11 +20,15 @@ type EvalResult = {
   };
   annotations: Annotation[];
   improvements: Improvement[];
+  citations?: Citation[];
 };
+
+const SUBJECTS = ["Economics", "Business", "Physics", "Maths", "History", "Sociology"];
 
 export default function Home() {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
+  const [subject, setSubject] = useState("Economics");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [ocrMode, setOcrMode] = useState<"question" | "answer">("answer");
@@ -90,14 +81,22 @@ export default function Home() {
       const res = await fetch("/api/evaluate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, response1: answer, response2: "", evaluator: "Gemini" }),
+        body: JSON.stringify({ question, response1: answer, response2: "", evaluator: "Gemini", subject }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Evaluation failed.");
-        return;
-      }
+      if (!res.ok) { setError(data.error || "Evaluation failed."); return; }
       setResult(data);
+
+      // Save weakness data
+      await fetch("/api/weakness", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject,
+          scores: data.breakdown,
+          improvements: data.improvements,
+        }),
+      });
     } catch {
       setError("Something went wrong.");
     } finally {
@@ -119,13 +118,38 @@ export default function Home() {
             <h1 className="text-4xl font-bold">iStudy AI</h1>
             <p className="text-gray-400 mt-1">Upload your answer. Get examiner-level feedback.</p>
           </div>
-          <Link href="/history" className="bg-gray-900 border border-gray-800 px-5 py-3 rounded-xl hover:bg-gray-800 transition text-sm">
-            History
-          </Link>
+          <div className="flex gap-3">
+            <Link href="/weakness" className="bg-gray-900 border border-gray-800 px-4 py-3 rounded-xl hover:bg-gray-800 transition text-sm">
+              Weaknesses
+            </Link>
+            <Link href="/history" className="bg-gray-900 border border-gray-800 px-4 py-3 rounded-xl hover:bg-gray-800 transition text-sm">
+              History
+            </Link>
+          </div>
         </div>
 
         {/* INPUT PANEL */}
         <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 space-y-5">
+
+          {/* Subject selector */}
+          <div>
+            <label className="text-sm text-gray-400 mb-2 block">Subject</label>
+            <div className="flex gap-2 flex-wrap">
+              {SUBJECTS.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setSubject(s)}
+                  className={`px-4 py-2 rounded-lg text-sm transition ${
+                    subject === s
+                      ? "bg-blue-600 text-white"
+                      : "bg-black border border-gray-800 text-gray-400 hover:border-gray-600"
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* Question */}
           <div>
@@ -255,9 +279,22 @@ export default function Home() {
               </div>
             )}
 
+            {/* Citations */}
+            {result.citations && result.citations.length > 0 && (
+              <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 space-y-3">
+                <h3 className="text-lg font-semibold mb-1">Sources & References</h3>
+                {result.citations.map((c, i) => (
+                  <div key={i} className="bg-black border border-gray-700 rounded-xl p-4 space-y-1">
+                    <p className="text-gray-200 text-sm">"{c.claim}"</p>
+                    <p className="text-blue-400 text-xs">📚 {c.source}</p>
+                    <p className="text-gray-500 text-xs">{c.reference}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
           </div>
         )}
-
       </div>
     </main>
   );
