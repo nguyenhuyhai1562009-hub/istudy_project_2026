@@ -32,8 +32,6 @@ export async function POST(req: Request) {
       subjectGuideline = "Focus heavily on economic models, policy trade-offs, market mechanisms, and short-run vs long-run effects.";
     } else if (subject.toLowerCase() === "business" || subject.toLowerCase() === "business management") {
       subjectGuideline = "Focus on stakeholder analysis, corporate strategy impacts, internal/external environments, and financial/non-financial metrics.";
-    } else if (subject.toLowerCase() === "history" || subject.toLowerCase() === "sociology") {
-      subjectGuideline = "Focus on historical/social contexts, cause-and-effect chains, source reliability, and evaluating multi-perspective arguments.";
     } else if (subject.toLowerCase() === "physics") {
       subjectGuideline = "Focus on correct application of physical laws, unit consistency, mathematical derivations, and experimental evaluation.";
     } else if (subject.toLowerCase() === "maths" || subject.toLowerCase() === "mathematics") {
