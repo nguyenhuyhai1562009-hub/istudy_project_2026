@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState, useRef } from "react";
+import AnnotationOverlay from "@/components/AnnotationOverlay";
+import TrustPanel from "@/components/TrustPanel";
 
 type Breakdown = { score: number; feedback: string; };
 type Annotation = { keyword: string; type: string; context: string; suggestion: string; };
@@ -44,7 +46,6 @@ export default function Home() {
   const [result, setResult] = useState<EvalResult | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Study Mode
   const [studyMode, setStudyMode] = useState("socratic");
   const [studyLoading, setStudyLoading] = useState(false);
   const [studyResponse, setStudyResponse] = useState("");
@@ -68,7 +69,6 @@ export default function Home() {
       if (data.text) {
         if (ocrMode === "answer") setAnswer(data.text);
         else setQuestion(data.text);
-        // Auto detect subject
         const detectRes = await fetch("/api/detect-subject", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -296,6 +296,7 @@ export default function Home() {
         {result && (
           <div className="space-y-5">
 
+            {/* Score Header */}
             <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">{result.subject}</p>
@@ -306,6 +307,18 @@ export default function Home() {
               </div>
             </div>
 
+            {/* Smart Annotation Overlay */}
+            {result.annotations?.length > 0 && answer && (
+              <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6">
+                <h3 className="text-lg font-semibold mb-1">Smart Annotation Overlay</h3>
+                <p className="text-xs text-gray-500 mb-4">Hover over highlighted text to see feedback</p>
+                <div className="bg-black border border-gray-800 rounded-xl p-4">
+                  <AnnotationOverlay text={answer} annotations={result.annotations} />
+                </div>
+              </div>
+            )}
+
+            {/* Breakdown */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {(["knowledge", "application", "analysis", "evaluation"] as const).map((key) => (
                 <div key={key} className="bg-[#111111] border border-gray-800 rounded-2xl p-4">
@@ -318,6 +331,7 @@ export default function Home() {
               ))}
             </div>
 
+            {/* Annotations */}
             {result.annotations?.length > 0 && (
               <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 space-y-3">
                 <h3 className="text-lg font-semibold mb-1">Annotations</h3>
@@ -331,6 +345,7 @@ export default function Home() {
               </div>
             )}
 
+            {/* Improvements */}
             {result.improvements?.length > 0 && (
               <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 space-y-3">
                 <h3 className="text-lg font-semibold mb-1">How to Improve</h3>
@@ -344,6 +359,7 @@ export default function Home() {
               </div>
             )}
 
+            {/* Citations */}
             {result.citations && result.citations.length > 0 && (
               <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 space-y-3">
                 <h3 className="text-lg font-semibold mb-1">Sources & References</h3>
@@ -356,6 +372,9 @@ export default function Home() {
                 ))}
               </div>
             )}
+
+            {/* Trust Check */}
+            <TrustPanel question={question} answer={answer} subject={subject} />
 
           </div>
         )}
