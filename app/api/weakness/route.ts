@@ -15,21 +15,17 @@ type ScoreEntry = {
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { subject, scores, improvements } = body;
-
+    const { subject, scores, improvements } = await req.json();
     const entry: ScoreEntry = {
       subject,
       scores,
       improvements,
       createdAt: new Date().toISOString(),
     };
-
     await kv.lpush(`weakness:${subject.toLowerCase()}`, entry);
-    await kv.ltrim(`weakness:${subject.toLowerCase()}`, 0, 49); // keep last 50
-
+    await kv.ltrim(`weakness:${subject.toLowerCase()}`, 0, 49);
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ success: false }, { status: 500 });
   }
 }
@@ -44,7 +40,6 @@ export async function GET(req: Request) {
       return NextResponse.json(data ?? []);
     }
 
-    // Return all subjects summary
     const subjects = ["economics", "business", "physics", "maths", "history", "sociology"];
     const summary: Record<string, any> = {};
 
@@ -53,7 +48,6 @@ export async function GET(req: Request) {
       if (entries && entries.length > 0) {
         const avg = (key: keyof ScoreEntry["scores"]) =>
           Math.round((entries.reduce((acc, e) => acc + e.scores[key].score, 0) / entries.length) * 10) / 10;
-
         summary[s] = {
           sessions: entries.length,
           averages: {
@@ -68,7 +62,7 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json(summary);
-  } catch (error) {
+  } catch {
     return NextResponse.json({}, { status: 500 });
   }
 }
