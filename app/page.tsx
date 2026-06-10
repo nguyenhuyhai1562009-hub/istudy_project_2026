@@ -1,96 +1,104 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
-type EvalResult = {
-  agreements?: string[];
-  contradictions?: string[];
-  hallucinationRisk?: {
-    response1: number;
-    response2: number;
-  };
-  reliabilityScore?: {
-    response1: number;
-    response2: number;
-  };
-  bestAnswer?: "response1" | "response2" | "mixed";
-  finalSynthesis?: string;
+type Breakdown = {
+  score: number;
+  feedback: string;
 };
 
-const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+type Annotation = {
+  keyword: string;
+  type: string;
+  context: string;
+  suggestion: string;
+};
+
+type Improvement = {
+  category: string;
+  defect: string;
+  fix: string;
+};
+
+type EvalResult = {
+  subject: string;
+  estimatedScore: string;
+  overallCritique: string;
+  breakdown: {
+    knowledge: Breakdown;
+    application: Breakdown;
+    analysis: Breakdown;
+    evaluation: Breakdown;
+  };
+  annotations: Annotation[];
+  improvements: Improvement[];
+};
 
 export default function Home() {
   const [question, setQuestion] = useState("");
-  const [model1, setModel1] = useState("ChatGPT");
-  const [model2, setModel2] = useState("Gemini");
-  const [evaluator, setEvaluator] = useState("Gemini");
+  const [answer, setAnswer] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [ocrMode, setOcrMode] = useState<"question" | "answer">("answer");
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState("");
   const [error, setError] = useState("");
-  const [ai1, setAi1] = useState("");
-  const [ai2, setAi2] = useState("");
   const [result, setResult] = useState<EvalResult | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
-  async function generateEvaluation() {
-    if (loading) return;
-    if (!question.trim()) {
-      setError("Please enter a question.");
+  function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  }
+
+  async function runOCR() {
+    if (!imageFile) return;
+    setLoadingStep("Extracting text from image...");
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", imageFile);
+      const res = await fetch("/api/ocr", { method: "POST", body: formData });
+      const data = await res.json();
+      if (data.text) {
+        if (ocrMode === "answer") setAnswer(data.text);
+        else setQuestion(data.text);
+      } else {
+        setError("OCR failed to extract text.");
+      }
+    } catch {
+      setError("OCR request failed.");
+    } finally {
+      setLoading(false);
+      setLoadingStep("");
+    }
+  }
+
+  async function runEvaluation() {
+    if (!question.trim() || !answer.trim()) {
+      setError("Please provide both a question and an answer.");
       return;
     }
-
+    setError("");
+    setLoading(true);
+    setResult(null);
+    setLoadingStep("Evaluating with Examiner AI...");
     try {
-      setError("");
-      setLoading(true);
-      setResult(null);
-
-      // RESPONSE 1
-      setLoadingStep(`Generating ${model1} response...`);
-      const response1Request = await fetch("/api/generate", {
+      const res = await fetch("/api/evaluate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: question, model: model1 }),
+        body: JSON.stringify({ question, response1: answer, response2: "", evaluator: "Gemini" }),
       });
-      const response1Data = await response1Request.json();
-      const r1 = response1Data.text;
-      setAi1(r1);
-
-      // DELAY between requests
-      await delay(3000);
-
-      // RESPONSE 2
-      setLoadingStep(`Generating ${model2} response...`);
-      const response2Request = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: question, model: model2 }),
-      });
-      const response2Data = await response2Request.json();
-      const r2 = response2Data.text;
-      setAi2(r2);
-
-      // DELAY before evaluation
-      await delay(3000);
-
-      // EVALUATION
-      setLoadingStep("Evaluating responses...");
-      const evaluationRequest = await fetch("/api/evaluate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, response1: r1, response2: r2, evaluator }),
-      });
-      const evaluationData = await evaluationRequest.json();
-
-      if (!evaluationRequest.ok) {
-        console.error("FULL ERROR:", evaluationData);
-        setError(JSON.stringify(evaluationData, null, 2));
-        setLoading(false);
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Evaluation failed.");
         return;
       }
-
-      setResult(evaluationData);
-    } catch (error) {
-      console.error(error);
+      setResult(data);
+    } catch {
       setError("Something went wrong.");
     } finally {
       setLoading(false);
@@ -98,148 +106,155 @@ export default function Home() {
     }
   }
 
+  const scoreColor = (s: number) =>
+    s >= 4 ? "text-green-400" : s >= 3 ? "text-yellow-400" : "text-red-400";
+
   return (
     <main className="min-h-screen bg-black text-white">
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="max-w-5xl mx-auto p-6 space-y-6">
 
         {/* HEADER */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold">Multi-Model AI Evaluation System</h1>
-            <p className="text-gray-400 mt-2">Compare, evaluate, verify, and synthesize AI-generated responses.</p>
+            <h1 className="text-4xl font-bold">iStudy AI</h1>
+            <p className="text-gray-400 mt-1">Upload your answer. Get examiner-level feedback.</p>
           </div>
-          <Link href="/history" className="bg-gray-900 border border-gray-800 px-5 py-3 rounded-xl hover:bg-gray-800 transition">
+          <Link href="/history" className="bg-gray-900 border border-gray-800 px-5 py-3 rounded-xl hover:bg-gray-800 transition text-sm">
             History
           </Link>
         </div>
 
         {/* INPUT PANEL */}
         <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 space-y-5">
-          <textarea
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Ask a question for AI evaluation..."
-            rows={4}
-            className="w-full bg-black border border-gray-800 rounded-xl p-4 resize-none outline-none focus:border-blue-500"
-          />
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <select value={model1} onChange={(e) => setModel1(e.target.value)} className="bg-black border border-gray-800 rounded-xl p-3">
-              <option>ChatGPT</option>
-              <option>Gemini</option>
-            </select>
-            <select value={model2} onChange={(e) => setModel2(e.target.value)} className="bg-black border border-gray-800 rounded-xl p-3">
-              <option>Gemini</option>
-              <option>ChatGPT</option>
-            </select>
-            <select value={evaluator} onChange={(e) => setEvaluator(e.target.value)} className="bg-black border border-gray-800 rounded-xl p-3">
-              <option>Gemini</option>
-              <option>ChatGPT</option>
-            </select>
-            <button
-              onClick={generateEvaluation}
-              disabled={loading}
-              className="bg-blue-600 hover:bg-blue-500 transition rounded-xl px-6 py-3 font-medium disabled:opacity-50"
-            >
-              {loading ? "Running..." : "Compare"}
-            </button>
-          </div>
-        </div>
 
-        {/* LOADING */}
-        {loading && (
-          <div className="bg-blue-900/20 border border-blue-700 rounded-2xl p-5 flex items-center gap-4">
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            <p>{loadingStep}</p>
+          {/* Question */}
+          <div>
+            <label className="text-sm text-gray-400 mb-2 block">Exam Question</label>
+            <textarea
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              placeholder="Paste the exam question here..."
+              rows={3}
+              className="w-full bg-black border border-gray-800 rounded-xl p-4 resize-none outline-none focus:border-blue-500 text-sm"
+            />
           </div>
-        )}
+
+          {/* Answer */}
+          <div>
+            <label className="text-sm text-gray-400 mb-2 block">Your Answer</label>
+            <textarea
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              placeholder="Paste or type your answer here, or upload an image below..."
+              rows={5}
+              className="w-full bg-black border border-gray-800 rounded-xl p-4 resize-none outline-none focus:border-blue-500 text-sm"
+            />
+          </div>
+
+          {/* OCR Upload */}
+          <div className="border border-dashed border-gray-700 rounded-xl p-4 space-y-3">
+            <p className="text-sm text-gray-400">Or upload an image to extract text via OCR</p>
+            <div className="flex items-center gap-3 flex-wrap">
+              <select
+                value={ocrMode}
+                onChange={(e) => setOcrMode(e.target.value as "question" | "answer")}
+                className="bg-black border border-gray-800 rounded-lg px-3 py-2 text-sm"
+              >
+                <option value="answer">Extract into: Answer</option>
+                <option value="question">Extract into: Question</option>
+              </select>
+              <button
+                onClick={() => fileRef.current?.click()}
+                className="bg-gray-800 hover:bg-gray-700 transition px-4 py-2 rounded-lg text-sm"
+              >
+                Choose Image
+              </button>
+              {imageFile && (
+                <button
+                  onClick={runOCR}
+                  disabled={loading}
+                  className="bg-purple-600 hover:bg-purple-500 transition px-4 py-2 rounded-lg text-sm disabled:opacity-50"
+                >
+                  Extract Text
+                </button>
+              )}
+              <input ref={fileRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+            </div>
+            {imagePreview && (
+              <img src={imagePreview} alt="Preview" className="max-h-48 rounded-lg border border-gray-700 object-contain" />
+            )}
+          </div>
+
+          <button
+            onClick={runEvaluation}
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-500 transition rounded-xl py-3 font-medium disabled:opacity-50"
+          >
+            {loading ? loadingStep : "Get Examiner Feedback"}
+          </button>
+        </div>
 
         {/* ERROR */}
         {error && (
-          <div className="bg-red-900/20 border border-red-700 rounded-2xl p-5">{error}</div>
+          <div className="bg-red-900/20 border border-red-700 rounded-2xl p-4 text-sm">{error}</div>
         )}
 
-        {/* AI RESPONSES */}
-        {(ai1 || ai2) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-5">
-              <div className="flex justify-between mb-4">
-                <h2 className="text-xl font-semibold">{model1}</h2>
-                {result?.bestAnswer === "response1" && (
-                  <span className="bg-green-600 text-xs px-3 py-1 rounded-full">Best</span>
-                )}
-              </div>
-              <p className="text-gray-300 leading-7 text-sm">{ai1}</p>
-            </div>
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-5">
-              <div className="flex justify-between mb-4">
-                <h2 className="text-xl font-semibold">{model2}</h2>
-                {result?.bestAnswer === "response2" && (
-                  <span className="bg-green-600 text-xs px-3 py-1 rounded-full">Best</span>
-                )}
-              </div>
-              <p className="text-gray-300 leading-7 text-sm">{ai2}</p>
-            </div>
-          </div>
-        )}
-
-        {/* EVALUATION */}
+        {/* RESULT */}
         {result && (
-          <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 space-y-8">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">AI Evaluation Report</h2>
-              <div className="bg-blue-600/20 border border-blue-500 text-blue-300 px-4 py-2 rounded-full text-sm">
-                Evaluated by {evaluator}
+          <div className="space-y-5">
+
+            {/* Score Header */}
+            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-sm">{result.subject}</p>
+                <p className="text-5xl font-bold mt-1">{result.estimatedScore}</p>
+              </div>
+              <div className="text-right max-w-sm">
+                <p className="text-gray-300 text-sm leading-6">{result.overallCritique}</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {([{ label: model1, key: "response1" }, { label: model2, key: "response2" }] as const).map(({ label, key }) => (
-                <div key={key} className="bg-black border border-gray-800 rounded-2xl p-5 space-y-5">
-                  <h3 className="text-lg font-semibold">{label}</h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Reliability</span>
-                      <span>{result.reliabilityScore?.[key] ?? 0}%</span>
-                    </div>
-                    <div className="w-full h-3 bg-gray-800 rounded-full overflow-hidden">
-                      <div className="h-full bg-green-500" style={{ width: `${result.reliabilityScore?.[key] ?? 0}%` }} />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Hallucination Risk</span>
-                      <span>{result.hallucinationRisk?.[key] ?? 0}%</span>
-                    </div>
-                    <div className="w-full h-3 bg-gray-800 rounded-full overflow-hidden">
-                      <div className="h-full bg-red-500" style={{ width: `${result.hallucinationRisk?.[key] ?? 0}%` }} />
-                    </div>
-                  </div>
+            {/* Breakdown */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {(["knowledge", "application", "analysis", "evaluation"] as const).map((key) => (
+                <div key={key} className="bg-[#111111] border border-gray-800 rounded-2xl p-4">
+                  <p className="text-gray-400 text-xs uppercase tracking-wide mb-2">{key}</p>
+                  <p className={`text-3xl font-bold ${scoreColor(result.breakdown[key].score)}`}>
+                    {result.breakdown[key].score}/5
+                  </p>
+                  <p className="text-gray-400 text-xs mt-2 leading-5">{result.breakdown[key].feedback}</p>
                 </div>
               ))}
             </div>
 
-            <div>
-              <h3 className="text-xl font-semibold mb-4">Agreements</h3>
-              <div className="space-y-3">
-                {(result.agreements || []).map((item, index) => (
-                  <div key={index} className="bg-black border border-gray-800 rounded-xl p-4 text-gray-300">• {item}</div>
+            {/* Annotations */}
+            {result.annotations?.length > 0 && (
+              <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 space-y-3">
+                <h3 className="text-lg font-semibold mb-1">Annotations</h3>
+                {result.annotations.map((a, i) => (
+                  <div key={i} className="bg-black border border-yellow-800/40 rounded-xl p-4 space-y-1">
+                    <p className="text-yellow-400 text-sm font-medium">"{a.keyword}"</p>
+                    <p className="text-gray-400 text-xs">{a.context}</p>
+                    <p className="text-gray-200 text-sm">💡 {a.suggestion}</p>
+                  </div>
                 ))}
               </div>
-            </div>
+            )}
 
-            <div>
-              <h3 className="text-xl font-semibold mb-4">Contradictions</h3>
-              <div className="space-y-3">
-                {(result.contradictions || []).map((item, index) => (
-                  <div key={index} className="bg-black border border-gray-800 rounded-xl p-4 text-gray-300">• {item}</div>
+            {/* Improvements */}
+            {result.improvements?.length > 0 && (
+              <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 space-y-3">
+                <h3 className="text-lg font-semibold mb-1">How to Improve</h3>
+                {result.improvements.map((imp, i) => (
+                  <div key={i} className="bg-black border border-blue-800/40 rounded-xl p-4 space-y-2">
+                    <p className="text-blue-400 text-xs uppercase tracking-wide font-medium">{imp.category}</p>
+                    <p className="text-red-300 text-sm">⚠ {imp.defect}</p>
+                    <p className="text-green-300 text-sm">✓ {imp.fix}</p>
+                  </div>
                 ))}
               </div>
-            </div>
+            )}
 
-            <div className="bg-gradient-to-br from-green-900/30 to-emerald-800/10 border border-green-700 rounded-2xl p-6">
-              <h2 className="text-2xl font-bold mb-4">Final Synthesized Answer</h2>
-              <p className="text-gray-100 leading-8">{result.finalSynthesis}</p>
-            </div>
           </div>
         )}
 
