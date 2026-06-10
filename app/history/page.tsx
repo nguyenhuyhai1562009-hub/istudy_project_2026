@@ -1,25 +1,18 @@
 "use client";
 
 import Link from "next/link";
-
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
 
 type HistoryItem = {
   id: number;
 
   question: string;
 
-  createdAt: string;
-
-  evaluator: string;
-
-  result?: {
-    bestAnswer?: string;
-    finalSynthesis?: string;
+  result: {
+    finalSynthesis: string;
   };
+
+  createdAt: string;
 };
 
 export default function HistoryPage() {
@@ -27,58 +20,23 @@ export default function HistoryPage() {
   const [history, setHistory] =
     useState<HistoryItem[]>([]);
 
-  const [loading, setLoading] =
-    useState(true);
-
-  // --------------------
-  // FETCH HISTORY
-  // --------------------
-
-  async function fetchHistory() {
-
-    try {
-
-      const res = await fetch(
-        "/api/history"
-      );
-
-      const data =
-        await res.json();
-
-      console.log(data);
-
-      setHistory(data);
-
-    } catch (error) {
-
-      console.error(error);
-
-    } finally {
-
-      setLoading(false);
-
-    }
-
-  }
-
   useEffect(() => {
 
-    fetchHistory();
+    fetch("/api/history")
+      .then((res) => res.json())
+      .then((data) => {
+
+        setHistory(data);
+
+      });
 
   }, []);
 
-  // --------------------
-  // DELETE ONE CHAT
-  // --------------------
-
-  async function deleteChat(
-    id: number
-  ) {
-
-    try {
+  const deleteChat =
+    async (id: number) => {
 
       await fetch(
-        `/api/history/${id}`,
+        `/api/history/delete/${id}`,
         {
           method: "DELETE",
         }
@@ -91,102 +49,59 @@ export default function HistoryPage() {
         )
       );
 
-    } catch (error) {
-
-      console.error(error);
-
-    }
-
-  }
+    };
 
   return (
+    <main className="min-h-screen bg-black text-white">
 
-    <main className="
-      min-h-screen
-      bg-black
-      text-white
-    ">
+      <div className="max-w-5xl mx-auto p-6">
 
-      <div className="
-        max-w-6xl
-        mx-auto
-        p-6
-        space-y-6
-      ">
-
-        {/* HEADER */}
-
-        <div className="
-          flex
-          justify-between
-          items-center
-        ">
+        <div className="flex items-center justify-between mb-8">
 
           <div>
 
-            <h1 className="
-              text-4xl
-              font-bold
-            ">
+            <h1 className="text-5xl font-bold">
               History
             </h1>
 
-            <p className="
-              text-gray-400
-              mt-2
-            ">
+            <p className="text-gray-400 mt-2">
               Saved AI evaluations.
             </p>
 
           </div>
+
+          <Link
+            href="/"
+            className="
+              bg-blue-600
+              hover:bg-blue-500
+              transition
+              px-5
+              py-3
+              rounded-xl
+            "
+          >
+            New Chat
+          </Link>
+
         </div>
 
-        {/* LOADING */}
+        <div className="space-y-4">
 
-        {loading && (
+          {history.length === 0 && (
 
-          <div className="
-            bg-[#111111]
-            border
-            border-gray-800
-            rounded-2xl
-            p-6
-          ">
-            Loading...
-          </div>
-
-        )}
-
-        {/* EMPTY */}
-
-        {!loading &&
-          history.length === 0 && (
-
-          <div className="
-            bg-[#111111]
-            border
-            border-gray-800
-            rounded-2xl
-            p-10
-            text-center
-          ">
-
-            <h2 className="
-              text-2xl
-              font-semibold
+            <div className="
+              bg-[#111111]
+              border
+              border-gray-800
+              rounded-2xl
+              p-6
+              text-gray-500
             ">
-              No Chats Found
-            </h2>
+              No saved chats.
+            </div>
 
-          </div>
-
-        )}
-
-        {/* HISTORY */}
-
-        <div className="
-          space-y-4
-        ">
+          )}
 
           {history.map((item) => (
 
@@ -201,137 +116,53 @@ export default function HistoryPage() {
               "
             >
 
-              <div className="
-                flex
-                justify-between
-                gap-6
-                flex-wrap
-              ">
+              <h2 className="text-xl font-semibold mb-3">
+                {item.question}
+              </h2>
 
-                {/* LEFT */}
+              <p className="text-gray-300 leading-7">
+                {item.result?.finalSynthesis}
+              </p>
 
-                <div className="
-                  flex-1
-                  space-y-4
-                ">
+              <div className="mt-4 text-sm text-gray-500">
+                {new Date(
+                  item.createdAt
+                ).toLocaleString()}
+              </div>
 
-                  <div className="
-                    flex
-                    gap-3
-                    flex-wrap
-                  ">
+              <div className="mt-5 flex gap-3">
 
-                    <div className="
-                      bg-blue-600/20
-                      border
-                      border-blue-500
-                      text-blue-300
-                      text-xs
-                      px-3
-                      py-1
-                      rounded-full
-                    ">
-                      {
-                        item.evaluator
-                      }
-                    </div>
-
-                    <div className="
-                      bg-green-600/20
-                      border
-                      border-green-500
-                      text-green-300
-                      text-xs
-                      px-3
-                      py-1
-                      rounded-full
-                    ">
-                      {
-                        item.result
-                          ?.bestAnswer
-                      }
-                    </div>
-
-                  </div>
-
-                  <h2 className="
-                    text-xl
-                    font-semibold
-                  ">
-                    {
-                      item.question
-                    }
-                  </h2>
-
-                  <p className="
-                    text-gray-400
+                <Link
+                  href={`/result/${item.id}`}
+                  className="
+                    bg-blue-600
+                    hover:bg-blue-500
+                    transition
+                    px-4
+                    py-2
+                    rounded-xl
                     text-sm
-                    leading-7
-                  ">
-                    {
-                      item.result
-                        ?.finalSynthesis
-                    }
-                  </p>
+                  "
+                >
+                  Open
+                </Link>
 
-                  <p className="
-                    text-gray-600
-                    text-xs
-                  ">
-                    {
-                      new Date(
-                        item.createdAt
-                      ).toLocaleString()
-                    }
-                  </p>
-
-                </div>
-
-                {/* BUTTONS */}
-
-                <div className="
-                  flex
-                  items-center
-                  gap-3
-                ">
-
-                  <Link
-                    href={`/result/${item.id}`}
-                    className="
-                      bg-blue-600
-                      hover:bg-blue-500
-                      transition
-                      px-5
-                      py-3
-                      rounded-xl
-                      text-sm
-                      font-medium
-                    "
-                  >
-                    Open Chat
-                  </Link>
-
-                  <button
-                    onClick={() =>
-                      deleteChat(
-                        item.id
-                      )
-                    }
-                    className="
-                      bg-red-600
-                      hover:bg-red-500
-                      transition
-                      px-5
-                      py-3
-                      rounded-xl
-                      text-sm
-                      font-medium
-                    "
-                  >
-                    Delete
-                  </button>
-
-                </div>
+                <button
+                  onClick={() =>
+                    deleteChat(item.id)
+                  }
+                  className="
+                    bg-red-600
+                    hover:bg-red-500
+                    transition
+                    px-4
+                    py-2
+                    rounded-xl
+                    text-sm
+                  "
+                >
+                  Delete
+                </button>
 
               </div>
 
@@ -344,7 +175,6 @@ export default function HistoryPage() {
       </div>
 
     </main>
-
   );
 
 }

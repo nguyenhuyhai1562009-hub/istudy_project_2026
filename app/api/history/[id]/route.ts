@@ -1,111 +1,20 @@
-import { NextResponse } from "next/server";
-
-import fs from "fs";
-import path from "path";
-
-const filePath = path.join(
-  process.cwd(),
-  "data",
-  "history.json"
-);
+import { NextRequest, NextResponse } from "next/server";
+import { kv } from "@vercel/kv";
 
 export async function DELETE(
-  request: Request,
-  {
-    params,
-  }: {
-    params: Promise<{
-      id: string;
-    }>;
-  }
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
-
+  const { id } = await context.params;
   try {
-
-    // --------------------
-    // GET ID
-    // --------------------
-
-    const { id } =
-      await params;
-
-    const numericId =
-      Number(id);
-
-    console.log(
-      "DELETE ID:",
-      numericId
-    );
-
-    // --------------------
-    // FILE CHECK
-    // --------------------
-
-    if (!fs.existsSync(filePath)) {
-
-      return NextResponse.json({
-        success: false,
-      });
-
+    const history = await kv.lrange<any>("history", 0, -1);
+    const updated = history.filter((item) => String(item.id) !== id);
+    await kv.del("history");
+    if (updated.length > 0) {
+      await kv.lpush("history", ...updated.reverse());
     }
-
-    // --------------------
-    // LOAD HISTORY
-    // --------------------
-
-    const raw =
-      fs.readFileSync(
-        filePath,
-        "utf-8"
-      );
-
-    const history =
-      JSON.parse(raw || "[]");
-
-    // --------------------
-    // DELETE ITEM
-    // --------------------
-
-    const updatedHistory =
-      history.filter(
-        (item: any) =>
-          item.id !== numericId
-      );
-
-    // --------------------
-    // SAVE FILE
-    // --------------------
-
-    fs.writeFileSync(
-      filePath,
-      JSON.stringify(
-        updatedHistory,
-        null,
-        2
-      )
-    );
-
-    console.log(
-      "CHAT DELETED"
-    );
-
-    return NextResponse.json({
-      success: true,
-    });
-
+    return NextResponse.json({ success: true });
   } catch (error) {
-
-    console.error(error);
-
-    return NextResponse.json(
-      {
-        success: false,
-      },
-      {
-        status: 500,
-      }
-    );
-
+    return NextResponse.json({ success: false }, { status: 500 });
   }
-
 }

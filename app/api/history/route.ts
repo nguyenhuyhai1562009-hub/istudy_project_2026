@@ -1,26 +1,12 @@
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-
-const filePath = path.join(process.cwd(), "data", "history.json");
+import { kv } from "@vercel/kv";
 
 export async function GET() {
   try {
-    // create folder if missing
-    if (!fs.existsSync("data")) {
-      fs.mkdirSync("data");
-    }
-
-    // create file if missing
-    if (!fs.existsSync(filePath)) {
-      fs.writeFileSync(filePath, "[]");
-    }
-
-    const data = fs.readFileSync(filePath, "utf-8");
-
-    return NextResponse.json(JSON.parse(data));
+    const history = await kv.lrange("history", 0, -1);
+    return NextResponse.json(history ?? []);
   } catch (error) {
     console.error(error);
-    return NextResponse.json([]);
+    return NextResponse.json([], { status: 500 });
   }
 }

@@ -1,611 +1,148 @@
 import { NextResponse } from "next/server";
-
-import fs from "fs";
-import path from "path";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { kv } from "@vercel/kv";
 
 export const runtime = "nodejs";
 
-// --------------------
-// HISTORY FILE
-// --------------------
+const apiKey = process.env.GEMINI_API_KEY;
+if (!apiKey) {
+  throw new Error("Missing GEMINI_API_KEY environment variable.");
+}
 
-const filePath = path.join(
-  process.cwd(),
-  "data",
-  "history.json"
-);
+const genAI = new GoogleGenerativeAI(apiKey);
 
-// --------------------
-// ENSURE DATA FOLDER
-// --------------------
-
-fs.mkdirSync(
-  path.join(process.cwd(), "data"),
-  {
-    recursive: true,
-  }
-);
-
-// --------------------
-// LOAD HISTORY
-// --------------------
-
-function loadHistory() {
-
+function extractJSON(text: string) {
   try {
-
-    if (!fs.existsSync(filePath)) {
-      return [];
-    }
-
-    const raw = fs.readFileSync(
-      filePath,
-      "utf-8"
-    );
-
-    return JSON.parse(raw || "[]");
-
+    const cleaned = text
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
+    return JSON.parse(cleaned);
   } catch {
-
-    return [];
-
+    return null;
   }
-
 }
 
-// --------------------
-// SAVE HISTORY
-// --------------------
-
-function saveHistory(data: any[]) {
-
-  fs.writeFileSync(
-    filePath,
-    JSON.stringify(data, null, 2)
-  );
-
-}
-
-// --------------------
-// ROUTE
-// --------------------
-
-export async function POST(
-  req: Request
-) {
-
+export async function POST(req: Request) {
   try {
+    const body = await req.json();
+    const question = body.question || "";
+    const response1 = body.response1 || "";
+    const response2 = body.response2 || "";
+    const evaluator = body.evaluator || "Gemini";
+    const subject = body.subject || "Economics"; // Dynamic subject fallback to Economics
 
-    const body =
-      await req.json();
-
-    const question =
-      body.question || "";
-
-    const response1 =
-      body.response1 || "";
-
-    const response2 =
-      body.response2 || "";
-
-    const evaluator =
-      body.evaluator || "Gemini";
-
-    // --------------------
-    // MOCK EVALUATION
-    // --------------------
-
-    const evaluation = {
-
-      agreements: [
-        "Both responses discuss AI systems.",
-        "Both answers mention reasoning."
-      ],
-
-      contradictions: [
-        "Response styles differ."
-      ],
-
-      hallucinationRisk: {
-        response1: 20,
-        response2: 35,
-      },
-
-      reliabilityScore: {
-        response1: 88,
-        response2: 80,
-      },
-
-      bestAnswer: "response1",
-
-      finalSynthesis:
-        "Both answers describe AI reasonably well. Response 1 provides slightly clearer reasoning.",
-
-    };
-
-    // --------------------
-    // SAVE HISTORY
-    // --------------------
-
-    const history =
-      loadHistory();
-
-    history.unshift({
-
-      id: Date.now(),
-
-      question,
-
-      response1,
-
-      response2,
-
-      evaluator,
-
-      result: evaluation,
-
-      createdAt:
-        new Date().toISOString(),
-
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.0-flash",
     });
 
-    saveHistory(history);
-
-    console.log(
-      "CHAT SAVED"
-    );
-
-    return NextResponse.json(
-      evaluation
-    );
-
-  } catch (error) {
-
-    console.error(error);
-
-    return NextResponse.json(
-      {
-        error:
-          "Evaluation failed",
-      },
-      {
-        status: 500,
-      }
-    );
-
-  }
-
-}/*import { NextResponse } from "next/server";
-
-import fs from "fs";
-import path from "path";
-
-import { GoogleGenerativeAI }
-from "@google/generative-ai";
-
-export const runtime = "nodejs";
-
-// --------------------
-// GEMINI
-// --------------------
-
-const geminiApiKey =
-  process.env.GEMINI_API_KEY;
-
-const genAI =
-  geminiApiKey
-    ? new GoogleGenerativeAI(
-        geminiApiKey
-      )
-    : null;
-
-// --------------------
-// HISTORY FILE
-// --------------------
-
-const filePath = path.join(
-  process.cwd(),
-  "data",
-  "history.json"
-);
-
-// --------------------
-// ENSURE DATA FOLDER
-// --------------------
-
-fs.mkdirSync(
-  path.join(process.cwd(), "data"),
-  {
-    recursive: true,
-  }
-);
-
-// --------------------
-// ENSURE HISTORY FILE
-// --------------------
-
-if (!fs.existsSync(filePath)) {
-
-  fs.writeFileSync(
-    filePath,
-    "[]",
-    "utf-8"
-  );
-
-}
-
-// --------------------
-// SAFE JSON EXTRACTOR
-// --------------------
-
-function extractJSON(
-  text: string
-) {
-
-  if (!text) return null;
-
-  const cleaned = text
-    .replace(/```json/g, "")
-    .replace(/```/g, "")
-    .trim();
-
-  try {
-
-    return JSON.parse(
-      cleaned
-    );
-
-  } catch {
-
-    const start =
-      cleaned.indexOf("{");
-
-    const end =
-      cleaned.lastIndexOf("}");
-
-    if (
-      start !== -1 &&
-      end !== -1
-    ) {
-
-      try {
-
-        return JSON.parse(
-          cleaned.slice(
-            start,
-            end + 1
-          )
-        );
-
-      } catch {
-
-        return null;
-
-      }
-
+    // Subject-specific tailored context
+    let subjectGuideline = "";
+    if (subject.toLowerCase() === "economics") {
+      subjectGuideline = "Focus heavily on economic models, policy trade-offs, market mechanisms, and short-run vs long-run effects.";
+    } else if (subject.toLowerCase() === "business management") {
+      subjectGuideline = "Focus on stakeholder analysis, corporate strategy impacts, internal/external environments, and financial/non-financial metrics.";
+    } else if (subject.toLowerCase() === "history" || subject.toLowerCase() === "sociology") {
+      subjectGuideline = "Focus on historical/social contexts, cause-and-effect chains, source reliability, and evaluating multi-perspective arguments.";
     }
 
-    return null;
+    const prompt = `
+You are an expert, strict international Examiner specialized in ${subject} (A-Level/AP standard). Your job is to rigorously evaluate the Student's Answer against the Given Question.
 
-  }
+${subjectGuideline}
 
-}
-
-// --------------------
-// FALLBACK
-// --------------------
-
-function fallback(
-  raw: string
-) {
-
-  return {
-
-    agreements: [],
-
-    contradictions: [],
-
-    hallucinationRisk: {
-      response1: 50,
-      response2: 50,
-    },
-
-    reliabilityScore: {
-      response1: 50,
-      response2: 50,
-    },
-
-    bestAnswer: "mixed",
-
-    finalSynthesis:
-      "Failed to parse model output.",
-
-    rawOutput: raw,
-
-  };
-
-}
-
-function localFallbackEvaluation(
-  question: string,
-  response1: string,
-  response2: string
-) {
-  const bestAnswer =
-    response1.length > response2.length
-      ? "response1"
-      : response2.length > response1.length
-      ? "response2"
-      : "mixed";
-
-  return {
-    agreements: [],
-    contradictions: [],
-    hallucinationRisk: {
-      response1: 50,
-      response2: 50,
-    },
-    reliabilityScore: {
-      response1: 50,
-      response2: 50,
-    },
-    bestAnswer,
-    finalSynthesis:
-      "Gemini API key missing or unavailable. Returning fallback evaluation.",
-    rawOutput:
-      "No Gemini API key available.",
-  };
-}
-
-// --------------------
-// LOAD HISTORY
-// --------------------
-
-function loadHistory() {
-
-  try {
-
-    const raw =
-      fs.readFileSync(
-        filePath,
-        "utf-8"
-      );
-
-    return JSON.parse(
-      raw || "[]"
-    );
-
-  } catch (error) {
-
-    console.error(
-      "LOAD HISTORY ERROR:",
-      error
-    );
-
-    return [];
-
-  }
-
-}
-
-// --------------------
-// SAVE HISTORY
-// --------------------
-
-function saveHistory(
-  data: any[]
-) {
-
-  try {
-
-    fs.writeFileSync(
-      filePath,
-      JSON.stringify(
-        data,
-        null,
-        2
-      )
-    );
-
-    console.log(
-      "CHAT SAVED"
-    );
-
-  } catch (error) {
-
-    console.error(
-      "SAVE HISTORY ERROR:",
-      error
-    );
-
-  }
-
-}
-
-// --------------------
-// POST ROUTE
-// --------------------
-
-export async function POST(
-  req: Request
-) {
-
-  try {
-
-    const body =
-      await req.json();
-
-    const question =
-      body.question || "";
-
-    const response1 =
-      body.response1 || "";
-
-    const response2 =
-      body.response2 || "";
-
-    const evaluator =
-      body.evaluator || "Gemini";
-
-    let evaluation;
-
-    if (!genAI) {
-      evaluation = localFallbackEvaluation(
-        question,
-        response1,
-        response2
-      );
-    } else {
-      // --------------------
-      // GEMINI MODEL
-      // --------------------
-
-      const model =
-        genAI.getGenerativeModel({
-          model:
-            "gemini-1.5-flash",
-        });
-
-      // --------------------
-      // PROMPT
-      // --------------------
-
-      const prompt = `
-You are an AI evaluator.
-
-Analyze BOTH responses carefully.
+CRITICAL DIRECTIONS:
+1. PROCESS FLOW: Evaluate the essay thoroughly, write detailed feedback, and identify annotations BEFORE assigning any scores. The final score must be a logical mathematical reflection of your analytical feedback.
+2. UNIVERSAL ACADEMIC RUBRIC (Apply strictly out of 5 marks per layer):
+   - 5 (Excellent): Exceptional depth. Accurate subject-specific terminology, logical multi-step cause-and-effect chains, well-justified judgments, and direct contextual application.
+   - 3-4 (Good): Solid understanding. Correct core concepts and relevant points, but missing deep analytical extensions or counter-arguments are slightly underdeveloped.
+   - 1-2 (Poor): Surface-level or fragmented knowledge. Parrots basic definitions without deep integration; relies heavily on generic assertions.
+   - 0: Completely irrelevant, non-academic, or blank.
+3. STRICT ANCHORING RULE: For the "annotations" array, the "keyword" field MUST be an exact, word-for-word substring extracted directly from the Student's Answer. Do not paraphrase, do not fix typos, do not alter a single character. If no specific flaw is found, return an empty array [].
+4. Return ONLY a valid JSON object matching the strict schema below. No markdown wrappers.
 
 QUESTION:
 ${question}
 
-RESPONSE 1:
+STUDENT'S ANSWER:
 ${response1}
 
-RESPONSE 2:
-${response2}
-
-Return ONLY valid JSON.
-
-Format:
-
+OUTPUT FORMAT (STRICT JSON ONLY):
 {
-  "agreements": [],
-  "contradictions": [],
-  "hallucinationRisk": {
-    "response1": 0,
-    "response2": 0
+  "subject": "${subject}",
+  "overallCritique": "[Provide a comprehensive, highly personalized diagnostic overview of the entire essay here]",
+  "breakdown": {
+    "knowledge": { 
+      "feedback": "[Specific feedback on definitions, accuracy, and theories used]", 
+      "score": [An integer from 0 to 5 based on the rubric] 
+    },
+    "application": { 
+      "feedback": "[Specific feedback on how well the student applied context or case data]", 
+      "score": [An integer from 0 to 5 based on the rubric] 
+    },
+    "analysis": { 
+      "feedback": "[Specific feedback on logical cause-and-effect chains and linkages]", 
+      "score": [An integer from 0 to 5 based on the rubric] 
+    },
+    "evaluation": { 
+      "feedback": "[Specific feedback on counter-arguments, weighing of factors, and final judgments]", 
+      "score": [An integer from 0 to 5 based on the rubric] 
+    }
   },
-  "reliabilityScore": {
-    "response1": 0,
-    "response2": 0
-  },
-  "bestAnswer": "response1",
-  "finalSynthesis": ""
+  "annotations": [
+    {
+      "keyword": "[Exact literal substring from the student's answer]",
+      "type": "warning",
+      "context": "[The immediate surrounding sentence for visual reference]",
+      "suggestion": "[Actionable coaching advice explaining what is structurally flawed or missing]"
+    }
+  ],
+  "improvements": [
+    {
+      "category": "[The core criteria flawed, e.g., Evaluation or Analysis]",
+      "defect": "[The specific weakness or missing structural component in this essay]",
+      "fix": "[Clear, step-by-step guidance on how the student should rewrite or expand this section]"
+    }
+  ],
+  "estimatedScore": "[Final total score formatted exactly as 'X/20'. X MUST equal the sum of the four breakdown scores above]"
 }
-
-Rules:
-- scores must be 0-100
-- bestAnswer:
-  response1
-  response2
-  mixed
-
-ONLY RETURN JSON.
 `;
 
-      // --------------------
-      // GENERATE RESPONSE
-      // --------------------
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    const parsed = extractJSON(text);
 
-      const result =
-        await model.generateContent(
-          prompt
-        );
-
-      const text =
-        result.response.text();
-
-      // --------------------
-      // PARSE RESPONSE
-      // --------------------
-
-      const parsed =
-        extractJSON(text);
-
-      evaluation =
-        parsed || fallback(text);
+    if (!parsed) {
+      return NextResponse.json(
+        { error: "Gemini returned invalid JSON.", raw: text },
+        { status: 500 }
+      );
     }
 
-    // --------------------
-    // LOAD HISTORY
-    // --------------------
-
-    const history =
-      loadHistory();
-
-    // --------------------
-    // CREATE ENTRY
-    // --------------------
-
-    const newEntry = {
-
+    // Fetch, update, and completely rewrite the Redis list history (Legacy Claude mechanism)
+    const history = await kv.lrange<any>("history", 0, -1);
+    history.unshift({
       id: Date.now(),
-
       question,
-
       response1,
       response2,
-
       evaluator,
+      subject,
+      result: parsed,
+      createdAt: new Date().toISOString(),
+    });
+    await kv.del("history");
+    await kv.lpush("history", ...history);
 
-      result: evaluation,
-
-      createdAt:
-        new Date().toISOString(),
-
-    };
-
-    // --------------------
-    // SAVE ENTRY
-    // --------------------
-
-    history.unshift(
-      newEntry
-    );
-
-    console.log(
-      "SAVING CHAT..."
-    );
-
-    saveHistory(
-      history
-    );
-
-    // --------------------
-    // RETURN RESPONSE
-    // --------------------
-
-    return NextResponse.json(
-      evaluation
-    );
-
+    return NextResponse.json(parsed);
   } catch (error) {
-
-    console.error(
-      "EVALUATE ROUTE ERROR:",
-      error
-    );
-
+    console.error("EVALUATE ROUTE ERROR:", error);
     return NextResponse.json(
       {
-        error:
-          "Evaluation failed.",
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
       },
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
-
   }
-
-}*/
+}

@@ -1,29 +1,1034 @@
 [
   {
-    "id": 1779854140806,
-    "question": "What is AI?\n",
-    "response1": "\nChatGPT response:\nArtificial Intelligence is a system capable of reasoning, learning, and processing information.\n",
-    "response2": "\nGemini response:\nAI refers to machines simulating human intelligence and problem-solving abilities.\n",
+    "id": 1780018672384,
+    "question": "What is quicksort?",
+    "response1": "Artificial intelligence is the simulation of human intelligence by computer systems. It encompasses machine learning, natural language processing, and computer vision to enable machines to perform tasks that typically require human cognition.",
+    "response2": "Artificial intelligence encompasses a broad range of techniques that enable machines to exhibit intelligent behavior. From symbolic reasoning to modern deep learning, AI systems now surpass human performance in specific domains like image recognition and protein structure prediction, raising profound questions about the future of work.",
     "evaluator": "Gemini",
     "result": {
       "agreements": [
-        "Both responses discuss AI systems.",
-        "Both answers mention reasoning."
+        "Both models correctly explain the fundamental principles with high accuracy.",
+        "Both identify the same key factors and their relative importance.",
+        "Both responses demonstrate awareness of current developments in the field."
       ],
       "contradictions": [
-        "Response styles differ."
+        "Response 1 emphasizes practical implications while Response 2 focuses on theoretical foundations.",
+        "Response 2 mentions additional nuances and edge cases that Response 1 does not address."
       ],
       "hallucinationRisk": {
-        "response1": 20,
-        "response2": 35
+        "response1": 9,
+        "response2": 14
+      },
+      "reliabilityScore": {
+        "response1": 91,
+        "response2": 84
+      },
+      "bestAnswer": "response1",
+      "finalSynthesis": "Response 1 provides a more reliable and concise explanation with lower hallucination risk. While Response 2 offers interesting additional perspectives, some claims require verification. The synthesized answer prioritizes Response 1's accuracy while incorporating Response 2's broader contextual insights where they align with established knowledge."
+    },
+    "createdAt": "2026-05-29T01:37:52.384Z"
+  },
+  {
+    "id": 1779973227344,
+    "question": "thuật toán quicksort là gì",
+    "response1": "Quicksort là thuật toán sắp xếp dùng kỹ thuật chia để trị. Nó chọn một phần tử chốt (pivot), chia mảng thành hai phần nhỏ hơn và lớn hơn pivot, rồi đệ quy sắp xếp từng phần. Độ phức tạp trung bình là O(n log n).",
+    "response2": "Quicksort là một trong những thuật toán sắp xếp phổ biến nhất với hiệu suất trung bình O(n log n). Bằng cách chọn pivot và phân hoạch mảng, nó sắp xếp đệ quy các phần con. Tuy nhiên trường hợp xấu nhất đạt O(n²) khi pivot luôn là phần tử cực trị — có thể tránh bằng cách chọn pivot ngẫu nhiên.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both models correctly explain the fundamental principles with high accuracy.",
+        "Both identify the same key factors and their relative importance.",
+        "Both responses demonstrate awareness of current developments in the field."
+      ],
+      "contradictions": [
+        "Response 1 emphasizes practical implications while Response 2 focuses on theoretical foundations.",
+        "Response 2 mentions additional nuances and edge cases that Response 1 does not address."
+      ],
+      "hallucinationRisk": {
+        "response1": 9,
+        "response2": 14
+      },
+      "reliabilityScore": {
+        "response1": 91,
+        "response2": 84
+      },
+      "bestAnswer": "response1",
+      "finalSynthesis": "Response 1 provides a more reliable and concise explanation with lower hallucination risk. While Response 2 offers interesting additional perspectives, some claims require verification. The synthesized answer prioritizes Response 1's accuracy while incorporating Response 2's broader contextual insights where they align with established knowledge."
+    },
+    "createdAt": "2026-05-28T13:00:27.344Z"
+  },
+  {
+    "id": 1779973172450,
+    "question": "what is machine learning",
+    "response1": "Machine learning is a subset of AI where algorithms learn patterns from data without explicit programming. The model adjusts internal parameters during training to minimize errors, enabling accurate predictions on new unseen data.",
+    "response2": "Machine learning enables systems to learn and improve from experience without being explicitly programmed. Through training on large datasets and optimization via backpropagation, neural networks develop internal representations that generalize across domains — from recommendation systems to medical diagnosis.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both responses correctly identify the core mechanism and provide accurate foundational explanations.",
+        "Both agree on the primary real-world applications and use cases.",
+        "Both responses maintain factual consistency with established scientific consensus."
+      ],
+      "contradictions": [
+        "Response 1 takes a more technical and mathematical approach while Response 2 uses intuitive analogies.",
+        "Response 2 provides broader context and historical background that Response 1 omits."
+      ],
+      "hallucinationRisk": {
+        "response1": 12,
+        "response2": 8
+      },
+      "reliabilityScore": {
+        "response1": 86,
+        "response2": 92
+      },
+      "bestAnswer": "response2",
+      "finalSynthesis": "Both responses provide solid foundational explanations. Response 2 demonstrates higher reliability with more precise terminology and broader contextual awareness. A comprehensive understanding combines Response 1's technical depth with Response 2's accessible framing and real-world grounding."
+    },
+    "createdAt": "2026-05-28T12:59:32.450Z"
+  },
+  {
+    "id": 1779973039817,
+    "question": "what is machine learning",
+    "response1": "Machine learning is a subset of AI where algorithms learn patterns from data without explicit programming. The model adjusts internal parameters during training to minimize errors, enabling accurate predictions on new unseen data.",
+    "response2": "Machine learning enables systems to learn and improve from experience without being explicitly programmed. Through training on large datasets and optimization via backpropagation, neural networks develop internal representations that generalize across domains — from recommendation systems to medical diagnosis.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both responses correctly define the core concept and agree on its fundamental properties.",
+        "Both highlight the same primary benefits and challenges associated with the topic.",
+        "Both demonstrate accurate understanding of the current state of the field."
+      ],
+      "contradictions": [
+        "The two models differ in their assessment of long-term implications and future trajectory.",
+        "Response 1 cites different causal mechanisms than Response 2, though both are partially valid."
+      ],
+      "hallucinationRisk": {
+        "response1": 11,
+        "response2": 11
       },
       "reliabilityScore": {
         "response1": 88,
-        "response2": 80
+        "response2": 88
+      },
+      "bestAnswer": "mixed",
+      "finalSynthesis": "Both responses demonstrate comparable reliability and complementary strengths. Neither response alone provides a complete picture — Response 1 excels in technical precision while Response 2 offers superior contextual framing. The optimal understanding synthesizes both perspectives, combining technical accuracy with broader real-world context."
+    },
+    "createdAt": "2026-05-28T12:57:19.817Z"
+  },
+  {
+    "id": 1779973018266,
+    "question": "what is machine learning",
+    "response1": "Machine learning is a subset of AI where algorithms learn patterns from data without explicit programming. The model adjusts internal parameters during training to minimize errors, enabling accurate predictions on new unseen data.",
+    "response2": "Machine learning enables systems to learn and improve from experience without being explicitly programmed. Through training on large datasets and optimization via backpropagation, neural networks develop internal representations that generalize across domains — from recommendation systems to medical diagnosis.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both responses correctly define the core concept and agree on its fundamental properties.",
+        "Both highlight the same primary benefits and challenges associated with the topic.",
+        "Both demonstrate accurate understanding of the current state of the field."
+      ],
+      "contradictions": [
+        "The two models differ in their assessment of long-term implications and future trajectory.",
+        "Response 1 cites different causal mechanisms than Response 2, though both are partially valid."
+      ],
+      "hallucinationRisk": {
+        "response1": 11,
+        "response2": 11
+      },
+      "reliabilityScore": {
+        "response1": 88,
+        "response2": 88
+      },
+      "bestAnswer": "mixed",
+      "finalSynthesis": "Both responses demonstrate comparable reliability and complementary strengths. Neither response alone provides a complete picture — Response 1 excels in technical precision while Response 2 offers superior contextual framing. The optimal understanding synthesizes both perspectives, combining technical accuracy with broader real-world context."
+    },
+    "createdAt": "2026-05-28T12:56:58.266Z"
+  },
+  {
+    "id": 1779972695435,
+    "question": "what is machine learning",
+    "response1": "Machine learning is a subset of AI where algorithms learn patterns from data without explicit programming. The model adjusts internal parameters during training to minimize errors, enabling accurate predictions on new unseen data.",
+    "response2": "Machine learning enables systems to learn and improve from experience without being explicitly programmed. Through training on large datasets and optimization via backpropagation, neural networks develop internal representations that generalize across domains — from recommendation systems to medical diagnosis.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both responses correctly identify the core mechanism and provide accurate foundational explanations.",
+        "Both agree on the primary real-world applications and use cases.",
+        "Both responses maintain factual consistency with established scientific consensus."
+      ],
+      "contradictions": [
+        "Response 1 takes a more technical and mathematical approach while Response 2 uses intuitive analogies.",
+        "Response 2 provides broader context and historical background that Response 1 omits."
+      ],
+      "hallucinationRisk": {
+        "response1": 12,
+        "response2": 8
+      },
+      "reliabilityScore": {
+        "response1": 86,
+        "response2": 92
+      },
+      "bestAnswer": "response2",
+      "finalSynthesis": "Both responses provide solid foundational explanations. Response 2 demonstrates higher reliability with more precise terminology and broader contextual awareness. A comprehensive understanding combines Response 1's technical depth with Response 2's accessible framing and real-world grounding."
+    },
+    "createdAt": "2026-05-28T12:51:35.435Z"
+  },
+  {
+    "id": 1779972679951,
+    "question": "what is machine learning",
+    "response1": "Machine learning enables systems to learn and improve from experience without being explicitly programmed. Through training on large datasets and optimization via backpropagation, neural networks develop internal representations that generalize across domains — from recommendation systems to medical diagnosis.",
+    "response2": "Machine learning enables systems to learn and improve from experience without being explicitly programmed. Through training on large datasets and optimization via backpropagation, neural networks develop internal representations that generalize across domains — from recommendation systems to medical diagnosis.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both responses correctly identify the core mechanism and provide accurate foundational explanations.",
+        "Both agree on the primary real-world applications and use cases.",
+        "Both responses maintain factual consistency with established scientific consensus."
+      ],
+      "contradictions": [
+        "Response 1 takes a more technical and mathematical approach while Response 2 uses intuitive analogies.",
+        "Response 2 provides broader context and historical background that Response 1 omits."
+      ],
+      "hallucinationRisk": {
+        "response1": 12,
+        "response2": 8
+      },
+      "reliabilityScore": {
+        "response1": 86,
+        "response2": 92
+      },
+      "bestAnswer": "response2",
+      "finalSynthesis": "Both responses provide solid foundational explanations. Response 2 demonstrates higher reliability with more precise terminology and broader contextual awareness. A comprehensive understanding combines Response 1's technical depth with Response 2's accessible framing and real-world grounding."
+    },
+    "createdAt": "2026-05-28T12:51:19.951Z"
+  },
+  {
+    "id": 1779972429430,
+    "question": "vật lý lượng tử là gì",
+    "response1": "Vật lý lượng tử là lý thuyết nền tảng trong vật lý mô tả hành vi của vật chất và ánh sáng ở cấp độ hạt cơ bản. Khác với vật lý cổ điển, năng lượng trong hệ lượng tử không liên tục mà tồn tại dưới dạng các gói rời rạc được gọi là các lượng tử (quanta). Điều này dẫn đến các hiện tượng kỳ lạ như sự vướng víu lượng tử.",
+    "response2": "Vật lý lượng tử là lý thuyết nền tảng trong vật lý mô tả hành vi của vật chất và ánh sáng ở cấp độ hạt cơ bản. Khác với vật lý cổ điển, năng lượng trong hệ lượng tử không liên tục mà tồn tại dưới dạng các gói rời rạc được gọi là các lượng tử (quanta). Điều này dẫn đến các hiện tượng kỳ lạ như sự vướng víu lượng tử.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both responses correctly identify the core mechanism and provide accurate foundational explanations.",
+        "Both agree on the primary real-world applications and use cases.",
+        "Both responses maintain factual consistency with established scientific consensus."
+      ],
+      "contradictions": [
+        "Response 1 takes a more technical and mathematical approach while Response 2 uses intuitive analogies.",
+        "Response 2 provides broader context and historical background that Response 1 omits."
+      ],
+      "hallucinationRisk": {
+        "response1": 12,
+        "response2": 8
+      },
+      "reliabilityScore": {
+        "response1": 86,
+        "response2": 92
+      },
+      "bestAnswer": "response2",
+      "finalSynthesis": "Both responses provide solid foundational explanations. Response 2 demonstrates higher reliability with more precise terminology and broader contextual awareness. A comprehensive understanding combines Response 1's technical depth with Response 2's accessible framing and real-world grounding."
+    },
+    "createdAt": "2026-05-28T12:47:09.430Z"
+  },
+  {
+    "id": 1779972319492,
+    "question": "vật lý lượng tử là gì",
+    "response1": "Vật lý lượng tử là lý thuyết nền tảng trong vật lý mô tả hành vi của vật chất và ánh sáng ở cấp độ hạt cơ bản. Khác với vật lý cổ điển, năng lượng trong hệ lượng tử không liên tục mà tồn tại dưới dạng các gói rời rạc được gọi là các lượng tử (quanta). Điều này dẫn đến các hiện tượng kỳ lạ như sự vướng víu lượng tử.",
+    "response2": "Vật lý lượng tử là lý thuyết nền tảng trong vật lý mô tả hành vi của vật chất và ánh sáng ở cấp độ hạt cơ bản. Khác với vật lý cổ điển, năng lượng trong hệ lượng tử không liên tục mà tồn tại dưới dạng các gói rời rạc được gọi là các lượng tử (quanta). Điều này dẫn đến các hiện tượng kỳ lạ như sự vướng víu lượng tử.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both responses correctly define the core concept and agree on its fundamental properties.",
+        "Both highlight the same primary benefits and challenges associated with the topic.",
+        "Both demonstrate accurate understanding of the current state of the field."
+      ],
+      "contradictions": [
+        "The two models differ in their assessment of long-term implications and future trajectory.",
+        "Response 1 cites different causal mechanisms than Response 2, though both are partially valid."
+      ],
+      "hallucinationRisk": {
+        "response1": 11,
+        "response2": 11
+      },
+      "reliabilityScore": {
+        "response1": 88,
+        "response2": 88
+      },
+      "bestAnswer": "mixed",
+      "finalSynthesis": "Both responses demonstrate comparable reliability and complementary strengths. Neither response alone provides a complete picture — Response 1 excels in technical precision while Response 2 offers superior contextual framing. The optimal understanding synthesizes both perspectives, combining technical accuracy with broader real-world context."
+    },
+    "createdAt": "2026-05-28T12:45:19.492Z"
+  },
+  {
+    "id": 1779972249927,
+    "question": "vật lý lượng tử là gì",
+    "response1": "Vật lý lượng tử là lý thuyết nền tảng trong vật lý mô tả hành vi của vật chất và ánh sáng ở cấp độ hạt cơ bản. Khác với vật lý cổ điển, năng lượng trong hệ lượng tử không liên tục mà tồn tại dưới dạng các gói rời rạc được gọi là các lượng tử (quanta). Điều này dẫn đến các hiện tượng kỳ lạ như sự vướng víu lượng tử.",
+    "response2": "Vật lý lượng tử là lý thuyết nền tảng trong vật lý mô tả hành vi của vật chất và ánh sáng ở cấp độ hạt cơ bản. Khác với vật lý cổ điển, năng lượng trong hệ lượng tử không liên tục mà tồn tại dưới dạng các gói rời rạc được gọi là các lượng tử (quanta). Điều này dẫn đến các hiện tượng kỳ lạ như sự vướng víu lượng tử.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both responses correctly identify the core mechanism and provide accurate foundational explanations.",
+        "Both agree on the primary real-world applications and use cases.",
+        "Both responses maintain factual consistency with established scientific consensus."
+      ],
+      "contradictions": [
+        "Response 1 takes a more technical and mathematical approach while Response 2 uses intuitive analogies.",
+        "Response 2 provides broader context and historical background that Response 1 omits."
+      ],
+      "hallucinationRisk": {
+        "response1": 12,
+        "response2": 8
+      },
+      "reliabilityScore": {
+        "response1": 86,
+        "response2": 92
+      },
+      "bestAnswer": "response2",
+      "finalSynthesis": "Both responses provide solid foundational explanations. Response 2 demonstrates higher reliability with more precise terminology and broader contextual awareness. A comprehensive understanding combines Response 1's technical depth with Response 2's accessible framing and real-world grounding."
+    },
+    "createdAt": "2026-05-28T12:44:09.927Z"
+  },
+  {
+    "id": 1779972226961,
+    "question": "vật lý lượng tử là gì",
+    "response1": "Vật lý lượng tử là lý thuyết nền tảng trong vật lý mô tả hành vi của vật chất và ánh sáng ở cấp độ hạt cơ bản. Khác với vật lý cổ điển, năng lượng trong hệ lượng tử không liên tục mà tồn tại dưới dạng các gói rời rạc được gọi là các lượng tử (quanta). Điều này dẫn đến các hiện tượng kỳ lạ như sự vướng víu lượng tử.",
+    "response2": "Vật lý lượng tử là lý thuyết nền tảng trong vật lý mô tả hành vi của vật chất và ánh sáng ở cấp độ hạt cơ bản. Khác với vật lý cổ điển, năng lượng trong hệ lượng tử không liên tục mà tồn tại dưới dạng các gói rời rạc được gọi là các lượng tử (quanta). Điều này dẫn đến các hiện tượng kỳ lạ như sự vướng víu lượng tử.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both responses correctly define the core concept and agree on its fundamental properties.",
+        "Both highlight the same primary benefits and challenges associated with the topic.",
+        "Both demonstrate accurate understanding of the current state of the field."
+      ],
+      "contradictions": [
+        "The two models differ in their assessment of long-term implications and future trajectory.",
+        "Response 1 cites different causal mechanisms than Response 2, though both are partially valid."
+      ],
+      "hallucinationRisk": {
+        "response1": 11,
+        "response2": 11
+      },
+      "reliabilityScore": {
+        "response1": 88,
+        "response2": 88
+      },
+      "bestAnswer": "mixed",
+      "finalSynthesis": "Both responses demonstrate comparable reliability and complementary strengths. Neither response alone provides a complete picture — Response 1 excels in technical precision while Response 2 offers superior contextual framing. The optimal understanding synthesizes both perspectives, combining technical accuracy with broader real-world context."
+    },
+    "createdAt": "2026-05-28T12:43:46.961Z"
+  },
+  {
+    "id": 1779972185918,
+    "question": "vật lý lượng tử là gì",
+    "response1": "Vật lý lượng tử là phân ngành vật lý nghiên cứu các hiện tượng ở quy mô nguyên tử và hạ nguyên tử. Điểm cốt lõi là tính lưỡng tính sóng-hạt, sự chồng chập lượng tử và nguyên lý bất định Heisenberg, nơi các thực thể có thể tồn tại ở nhiều trạng thái cùng một lúc cho đến khi được đo lường.",
+    "response2": "Vật lý lượng tử là lý thuyết nền tảng trong vật lý mô tả hành vi của vật chất và ánh sáng ở cấp độ hạt cơ bản. Khác với vật lý cổ điển, năng lượng trong hệ lượng tử không liên tục mà tồn tại dưới dạng các gói rời rạc được gọi là các lượng tử (quanta).",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both responses correctly identify the core mechanism and provide accurate foundational explanations.",
+        "Both agree on the primary real-world applications and use cases.",
+        "Both responses maintain factual consistency with established scientific consensus."
+      ],
+      "contradictions": [
+        "Response 1 takes a more technical and mathematical approach while Response 2 uses intuitive analogies.",
+        "Response 2 provides broader context and historical background that Response 1 omits."
+      ],
+      "hallucinationRisk": {
+        "response1": 12,
+        "response2": 8
+      },
+      "reliabilityScore": {
+        "response1": 86,
+        "response2": 92
+      },
+      "bestAnswer": "response2",
+      "finalSynthesis": "Both responses provide solid foundational explanations. Response 2 demonstrates higher reliability with more precise terminology and broader contextual awareness. A comprehensive understanding combines Response 1's technical depth with Response 2's accessible framing and real-world grounding."
+    },
+    "createdAt": "2026-05-28T12:43:05.918Z"
+  },
+  {
+    "id": 1779972060669,
+    "question": "vật lý lượng tử là gì?",
+    "response1": "The primary driver of contemporary climate change is the anthropogenic release of greenhouse gases, particularly CO2 from fossil fuel combustion and methane from agriculture. These gases enhance the natural greenhouse effect, disrupting the Earth's energy balance and triggering cascading environmental changes.",
+    "response2": "The primary driver of contemporary climate change is the anthropogenic release of greenhouse gases, particularly CO2 from fossil fuel combustion and methane from agriculture. These gases enhance the natural greenhouse effect, disrupting the Earth's energy balance and triggering cascading environmental changes.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both responses correctly identify the core mechanism and provide accurate foundational explanations.",
+        "Both agree on the primary real-world applications and use cases.",
+        "Both responses maintain factual consistency with established scientific consensus."
+      ],
+      "contradictions": [
+        "Response 1 takes a more technical and mathematical approach while Response 2 uses intuitive analogies.",
+        "Response 2 provides broader context and historical background that Response 1 omits."
+      ],
+      "hallucinationRisk": {
+        "response1": 12,
+        "response2": 8
+      },
+      "reliabilityScore": {
+        "response1": 86,
+        "response2": 92
+      },
+      "bestAnswer": "response2",
+      "finalSynthesis": "Both responses provide solid foundational explanations. Response 2 demonstrates higher reliability with more precise terminology and broader contextual awareness. A comprehensive understanding combines Response 1's technical depth with Response 2's accessible framing and real-world grounding."
+    },
+    "createdAt": "2026-05-28T12:41:00.669Z"
+  },
+  {
+    "id": 1779972017131,
+    "question": "vật lý lượng tử là gì\n",
+    "response1": "Vật lý lượng tử là phân ngành vật lý nghiên cứu các hiện tượng ở quy mô nguyên tử và hạ nguyên tử. Điểm cốt lõi là tính lưỡng tính sóng-hạt, sự chồng chập lượng tử và nguyên lý bất định Heisenberg, nơi các thực thể có thể tồn tại ở nhiều trạng thái cùng một lúc cho đến khi được đo lường.",
+    "response2": "Vật lý lượng tử là lý thuyết nền tảng trong vật lý mô tả hành vi của vật chất và ánh sáng ở cấp độ hạt cơ bản. Khác với vật lý cổ điển, năng lượng trong hệ lượng tử không liên tục mà tồn tại dưới dạng các gói rời rạc được gọi là các lượng tử (quanta).",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both responses correctly define the core concept and agree on its fundamental properties.",
+        "Both highlight the same primary benefits and challenges associated with the topic.",
+        "Both demonstrate accurate understanding of the current state of the field."
+      ],
+      "contradictions": [
+        "The two models differ in their assessment of long-term implications and future trajectory.",
+        "Response 1 cites different causal mechanisms than Response 2, though both are partially valid."
+      ],
+      "hallucinationRisk": {
+        "response1": 11,
+        "response2": 11
+      },
+      "reliabilityScore": {
+        "response1": 88,
+        "response2": 88
+      },
+      "bestAnswer": "mixed",
+      "finalSynthesis": "Both responses demonstrate comparable reliability and complementary strengths. Neither response alone provides a complete picture — Response 1 excels in technical precision while Response 2 offers superior contextual framing. The optimal understanding synthesizes both perspectives, combining technical accuracy with broader real-world context."
+    },
+    "createdAt": "2026-05-28T12:40:17.131Z"
+  },
+  {
+    "id": 1779971880256,
+    "question": "what is machine learning",
+    "response1": "Large language models are trained on massive text corpora using transformer architecture to predict the next token in a sequence. Through this self-supervised process, they develop emergent capabilities in reasoning, writing, coding, and problem-solving.",
+    "response2": "Large language models represent a paradigm shift in AI, emerging from training on internet-scale text data using the transformer architecture. Through next-token prediction at massive scale, these models internalize grammar, facts, reasoning patterns, and world knowledge.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both models correctly explain the fundamental principles with high accuracy.",
+        "Both identify the same key factors and their relative importance.",
+        "Both responses demonstrate awareness of current developments in the field."
+      ],
+      "contradictions": [
+        "Response 1 emphasizes practical implications while Response 2 focuses on theoretical foundations.",
+        "Response 2 mentions additional nuances and edge cases that Response 1 does not address."
+      ],
+      "hallucinationRisk": {
+        "response1": 9,
+        "response2": 14
+      },
+      "reliabilityScore": {
+        "response1": 91,
+        "response2": 84
       },
       "bestAnswer": "response1",
-      "finalSynthesis": "Both answers describe AI reasonably well. Response 1 provides slightly clearer reasoning."
+      "finalSynthesis": "Response 1 provides a more reliable and concise explanation with lower hallucination risk. While Response 2 offers interesting additional perspectives, some claims require verification. The synthesized answer prioritizes Response 1's accuracy while incorporating Response 2's broader contextual insights where they align with established knowledge."
     },
-    "createdAt": "2026-05-27T03:55:40.806Z"
+    "createdAt": "2026-05-28T12:38:00.256Z"
+  },
+  {
+    "id": 1779968271883,
+    "question": "what is machine learning",
+    "response1": "Machine learning is a subset of artificial intelligence where algorithms learn patterns from data without explicit programming. The system adjusts its internal parameters through training to minimize prediction errors, enabling it to generalize to new unseen data.",
+    "response2": "Blockchain technology creates an immutable, transparent record of transactions through cryptographic linking of data blocks distributed across a peer-to-peer network. Consensus mechanisms like Proof of Work or Proof of Stake ensure agreement among nodes without central coordination, enabling trustless digital transactions.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both models correctly explain the fundamental principles with high accuracy.",
+        "Both identify the same key factors and their relative importance.",
+        "Both responses demonstrate awareness of current developments in the field."
+      ],
+      "contradictions": [
+        "Response 1 emphasizes practical implications while Response 2 focuses on theoretical foundations.",
+        "Response 2 mentions additional nuances and edge cases that Response 1 does not address."
+      ],
+      "hallucinationRisk": {
+        "response1": 9,
+        "response2": 14
+      },
+      "reliabilityScore": {
+        "response1": 91,
+        "response2": 84
+      },
+      "bestAnswer": "response1",
+      "finalSynthesis": "Response 1 provides a more reliable and concise explanation with lower hallucination risk. While Response 2 offers interesting additional perspectives, some claims require verification. The synthesized answer prioritizes Response 1's accuracy while incorporating Response 2's broader contextual insights where they align with established knowledge."
+    },
+    "createdAt": "2026-05-28T11:37:51.883Z"
+  },
+  {
+    "id": 1779968262590,
+    "question": "What is machine learning?",
+    "response1": "Blockchain is a decentralized distributed ledger that records transactions across a network of computers. Each block contains a cryptographic hash linking it to the previous block, making the chain tamper-resistant without requiring a central authority.",
+    "response2": "Blockchain technology creates an immutable, transparent record of transactions through cryptographic linking of data blocks distributed across a peer-to-peer network. Consensus mechanisms like Proof of Work or Proof of Stake ensure agreement among nodes without central coordination, enabling trustless digital transactions.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both models correctly explain the fundamental principles with high accuracy.",
+        "Both identify the same key factors and their relative importance.",
+        "Both responses demonstrate awareness of current developments in the field."
+      ],
+      "contradictions": [
+        "Response 1 emphasizes practical implications while Response 2 focuses on theoretical foundations.",
+        "Response 2 mentions additional nuances and edge cases that Response 1 does not address."
+      ],
+      "hallucinationRisk": {
+        "response1": 9,
+        "response2": 14
+      },
+      "reliabilityScore": {
+        "response1": 91,
+        "response2": 84
+      },
+      "bestAnswer": "response1",
+      "finalSynthesis": "Response 1 provides a more reliable and concise explanation with lower hallucination risk. While Response 2 offers interesting additional perspectives, some claims require verification. The synthesized answer prioritizes Response 1's accuracy while incorporating Response 2's broader contextual insights where they align with established knowledge."
+    },
+    "createdAt": "2026-05-28T11:37:42.590Z"
+  },
+  {
+    "id": 1779968247314,
+    "question": "What is machine learning?",
+    "response1": "Machine learning enables computational systems to improve their performance on tasks through experience. By exposing models to training data and applying optimization algorithms like gradient descent, the system learns statistical representations of the data that generalize to new inputs. Deep learning extends this using neural networks with multiple layers.",
+    "response2": "The primary driver of contemporary climate change is the anthropogenic release of greenhouse gases, particularly CO2 from fossil fuel combustion and methane from agriculture and natural gas systems. These gases enhance the natural greenhouse effect, disrupting the Earth's energy balance and triggering cascading environmental changes including ocean acidification and biodiversity loss.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both models correctly explain the fundamental principles with high accuracy.",
+        "Both identify the same key factors and their relative importance.",
+        "Both responses demonstrate awareness of current developments in the field."
+      ],
+      "contradictions": [
+        "Response 1 emphasizes practical implications while Response 2 focuses on theoretical foundations.",
+        "Response 2 mentions additional nuances and edge cases that Response 1 does not address."
+      ],
+      "hallucinationRisk": {
+        "response1": 9,
+        "response2": 14
+      },
+      "reliabilityScore": {
+        "response1": 91,
+        "response2": 84
+      },
+      "bestAnswer": "response1",
+      "finalSynthesis": "Response 1 provides a more reliable and concise explanation with lower hallucination risk. While Response 2 offers interesting additional perspectives, some claims require verification. The synthesized answer prioritizes Response 1's accuracy while incorporating Response 2's broader contextual insights where they align with established knowledge."
+    },
+    "createdAt": "2026-05-28T11:37:27.314Z"
+  },
+  {
+    "id": 1779963836142,
+    "question": "vật lý lượng tử là gì\n",
+    "response1": "Quantum computing harnesses quantum mechanical properties — superposition, entanglement, and interference — to perform computations. While a classical bit is deterministic (0 or 1), a qubit exists in a probabilistic superposition of both states, allowing quantum computers to explore many solution paths simultaneously, offering exponential speedups for optimization and cryptography.",
+    "response2": "Machine learning enables computational systems to improve their performance on tasks through experience. By exposing models to training data and applying optimization algorithms like gradient descent, the system learns statistical representations of the data that generalize to new inputs. Deep learning extends this using neural networks with multiple layers.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both models correctly explain the fundamental principles with high accuracy.",
+        "Both identify the same key factors and their relative importance.",
+        "Both responses demonstrate awareness of current developments in the field."
+      ],
+      "contradictions": [
+        "Response 1 emphasizes practical implications while Response 2 focuses on theoretical foundations.",
+        "Response 2 mentions additional nuances and edge cases that Response 1 does not address."
+      ],
+      "hallucinationRisk": {
+        "response1": 9,
+        "response2": 14
+      },
+      "reliabilityScore": {
+        "response1": 91,
+        "response2": 84
+      },
+      "bestAnswer": "response1",
+      "finalSynthesis": "Response 1 provides a more reliable and concise explanation with lower hallucination risk. While Response 2 offers interesting additional perspectives, some claims require verification. The synthesized answer prioritizes Response 1's accuracy while incorporating Response 2's broader contextual insights where they align with established knowledge."
+    },
+    "createdAt": "2026-05-28T10:23:56.142Z"
+  },
+  {
+    "id": 1779963742820,
+    "question": "thuật toán quicksort là gì\n",
+    "response1": "Machine learning enables computational systems to improve their performance on tasks through experience. By exposing models to training data and applying optimization algorithms like gradient descent, the system learns statistical representations of the data that generalize to new inputs. Deep learning extends this using neural networks with multiple layers.",
+    "response2": "Blockchain technology creates an immutable, transparent record of transactions through cryptographic linking of data blocks distributed across a peer-to-peer network. Consensus mechanisms like Proof of Work or Proof of Stake ensure agreement among nodes without central coordination, enabling trustless digital transactions.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both responses correctly identify the core mechanism and provide accurate foundational explanations.",
+        "Both agree on the primary real-world applications and use cases.",
+        "Both responses maintain factual consistency with established scientific consensus."
+      ],
+      "contradictions": [
+        "Response 1 takes a more technical and mathematical approach while Response 2 uses intuitive analogies.",
+        "Response 2 provides broader context and historical background that Response 1 omits."
+      ],
+      "hallucinationRisk": {
+        "response1": 12,
+        "response2": 8
+      },
+      "reliabilityScore": {
+        "response1": 86,
+        "response2": 92
+      },
+      "bestAnswer": "response2",
+      "finalSynthesis": "Both responses provide solid foundational explanations. Response 2 demonstrates higher reliability with more precise terminology and broader contextual awareness. A comprehensive understanding combines Response 1's technical depth with Response 2's accessible framing and real-world grounding."
+    },
+    "createdAt": "2026-05-28T10:22:22.820Z"
+  },
+  {
+    "id": 1779963580354,
+    "question": "kinh tế vĩ mô là gì\n\n",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both models correctly explain the fundamental principles with high accuracy.",
+        "Both identify the same key factors and their relative importance.",
+        "Both responses demonstrate awareness of current developments in the field."
+      ],
+      "contradictions": [
+        "Response 1 emphasizes practical implications while Response 2 focuses on theoretical foundations.",
+        "Response 2 mentions additional nuances and edge cases that Response 1 does not address."
+      ],
+      "hallucinationRisk": {
+        "response1": 9,
+        "response2": 14
+      },
+      "reliabilityScore": {
+        "response1": 91,
+        "response2": 84
+      },
+      "bestAnswer": "response1",
+      "finalSynthesis": "Response 1 provides a more reliable and concise explanation with lower hallucination risk. While Response 2 offers interesting additional perspectives, some claims require verification. The synthesized answer prioritizes Response 1's accuracy while incorporating Response 2's broader contextual insights where they align with established knowledge."
+    },
+    "createdAt": "2026-05-28T10:19:40.354Z"
+  },
+  {
+    "id": 1779963553162,
+    "question": "kinh tế vĩ mô là gì",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both models correctly explain the fundamental principles with high accuracy.",
+        "Both identify the same key factors and their relative importance.",
+        "Both responses demonstrate awareness of current developments in the field."
+      ],
+      "contradictions": [
+        "Response 1 emphasizes practical implications while Response 2 focuses on theoretical foundations.",
+        "Response 2 mentions additional nuances and edge cases that Response 1 does not address."
+      ],
+      "hallucinationRisk": {
+        "response1": 9,
+        "response2": 14
+      },
+      "reliabilityScore": {
+        "response1": 91,
+        "response2": 84
+      },
+      "bestAnswer": "response1",
+      "finalSynthesis": "Response 1 provides a more reliable and concise explanation with lower hallucination risk. While Response 2 offers interesting additional perspectives, some claims require verification. The synthesized answer prioritizes Response 1's accuracy while incorporating Response 2's broader contextual insights where they align with established knowledge."
+    },
+    "createdAt": "2026-05-28T10:19:13.162Z"
+  },
+  {
+    "id": 1779963512103,
+    "question": "What is quantum physics and how does it differ from classical computing?",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both models correctly explain the fundamental principles with high accuracy.",
+        "Both identify the same key factors and their relative importance.",
+        "Both responses demonstrate awareness of current developments in the field."
+      ],
+      "contradictions": [
+        "Response 1 emphasizes practical implications while Response 2 focuses on theoretical foundations.",
+        "Response 2 mentions additional nuances and edge cases that Response 1 does not address."
+      ],
+      "hallucinationRisk": {
+        "response1": 9,
+        "response2": 14
+      },
+      "reliabilityScore": {
+        "response1": 91,
+        "response2": 84
+      },
+      "bestAnswer": "response1",
+      "finalSynthesis": "Response 1 provides a more reliable and concise explanation with lower hallucination risk. While Response 2 offers interesting additional perspectives, some claims require verification. The synthesized answer prioritizes Response 1's accuracy while incorporating Response 2's broader contextual insights where they align with established knowledge."
+    },
+    "createdAt": "2026-05-28T10:18:32.103Z"
+  },
+  {
+    "id": 1779963336542,
+    "question": "Thuật toán quick sort là gì?",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both responses correctly identify the core mechanism and provide accurate foundational explanations.",
+        "Both agree on the primary real-world applications and use cases.",
+        "Both responses maintain factual consistency with established scientific consensus."
+      ],
+      "contradictions": [
+        "Response 1 takes a more technical and mathematical approach while Response 2 uses intuitive analogies.",
+        "Response 2 provides broader context and historical background that Response 1 omits."
+      ],
+      "hallucinationRisk": {
+        "response1": 12,
+        "response2": 8
+      },
+      "reliabilityScore": {
+        "response1": 86,
+        "response2": 92
+      },
+      "bestAnswer": "response2",
+      "finalSynthesis": "Both responses provide solid foundational explanations. Response 2 demonstrates higher reliability with more precise terminology and broader contextual awareness. A comprehensive understanding combines Response 1's technical depth with Response 2's accessible framing and real-world grounding."
+    },
+    "createdAt": "2026-05-28T10:15:36.542Z"
+  },
+  {
+    "id": 1779963308316,
+    "question": "Vật lý lượng tử là gì?",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both responses correctly define the core concept and agree on its fundamental properties.",
+        "Both highlight the same primary benefits and challenges associated with the topic.",
+        "Both demonstrate accurate understanding of the current state of the field."
+      ],
+      "contradictions": [
+        "The two models differ in their assessment of long-term implications and future trajectory.",
+        "Response 1 cites different causal mechanisms than Response 2, though both are partially valid."
+      ],
+      "hallucinationRisk": {
+        "response1": 11,
+        "response2": 11
+      },
+      "reliabilityScore": {
+        "response1": 88,
+        "response2": 88
+      },
+      "bestAnswer": "mixed",
+      "finalSynthesis": "Both responses demonstrate comparable reliability and complementary strengths. Neither response alone provides a complete picture — Response 1 excels in technical precision while Response 2 offers superior contextual framing. The optimal understanding synthesizes both perspectives, combining technical accuracy with broader real-world context."
+    },
+    "createdAt": "2026-05-28T10:15:08.316Z"
+  },
+  {
+    "id": 1779961899675,
+    "question": "What is quantum physics?",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both models correctly explain the fundamental principles with high accuracy.",
+        "Both identify the same key factors and their relative importance.",
+        "Both responses demonstrate awareness of current developments in the field."
+      ],
+      "contradictions": [
+        "Response 1 emphasizes practical implications while Response 2 focuses on theoretical foundations.",
+        "Response 2 mentions additional nuances and edge cases that Response 1 does not address."
+      ],
+      "hallucinationRisk": {
+        "response1": 9,
+        "response2": 14
+      },
+      "reliabilityScore": {
+        "response1": 91,
+        "response2": 84
+      },
+      "bestAnswer": "response1",
+      "finalSynthesis": "Response 1 provides a more reliable and concise explanation with lower hallucination risk. While Response 2 offers interesting additional perspectives, some claims require verification. The synthesized answer prioritizes Response 1's accuracy while incorporating Response 2's broader contextual insights where they align with established knowledge."
+    },
+    "createdAt": "2026-05-28T09:51:39.675Z"
+  },
+  {
+    "id": 1716854400000,
+    "question": "What is quantum computing and how does it differ from classical computing?",
+    "response1": "Quantum computing uses quantum bits (qubits) that can exist in superposition, meaning they can be both 0 and 1 simultaneously. Unlike classical computers that process bits sequentially, quantum computers can process multiple states at once, making them exponentially faster for specific tasks like cryptography, drug discovery, and optimization problems. Classical computers are deterministic, while quantum computers use probability amplitudes.",
+    "response2": "Quantum computing harnesses quantum mechanical phenomena like superposition and entanglement to process information. Classical computers use binary bits (0 or 1), but quantum computers use qubits which can represent multiple states simultaneously. This allows quantum computers to solve complex problems like simulating molecular interactions, breaking encryption, and optimizing logistics that would take classical computers millions of years to solve.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both responses correctly explain that qubits can exist in superposition (0 and 1 simultaneously)",
+        "Both agree quantum computing excels at specific complex tasks like cryptography",
+        "Both correctly contrast quantum bits with classical binary bits"
+      ],
+      "contradictions": [
+        "Response 1 emphasizes sequential vs parallel processing, while Response 2 focuses on entanglement as a key differentiator",
+        "Response 1 mentions drug discovery, Response 2 mentions logistics optimization as primary use cases"
+      ],
+      "hallucinationRisk": {
+        "response1": 12,
+        "response2": 15
+      },
+      "reliabilityScore": {
+        "response1": 88,
+        "response2": 85
+      },
+      "bestAnswer": "response1",
+      "finalSynthesis": "Quantum computing leverages quantum mechanical properties — primarily superposition and entanglement — to process information fundamentally differently than classical computers. While classical computers use deterministic binary bits, quantum computers use qubits that can represent multiple states simultaneously, enabling exponential speedups for specific problems including cryptography, molecular simulation, drug discovery, and complex optimization tasks."
+    },
+    "createdAt": "2025-05-28T08:00:00.000Z"
+  },
+  {
+    "id": 1716854500000,
+    "question": "What are the main causes of climate change?",
+    "response1": "The main causes of climate change are human activities, primarily the burning of fossil fuels (coal, oil, gas) which releases greenhouse gases like CO2 and methane. Deforestation reduces carbon absorption, while industrial processes and agriculture also contribute significantly. These gases trap heat in the atmosphere, causing global temperatures to rise.",
+    "response2": "Climate change is primarily driven by the greenhouse effect intensified by human activities. Burning fossil fuels for energy and transportation releases CO2, the most significant greenhouse gas. Agriculture produces methane from livestock and nitrous oxide from fertilizers. Deforestation eliminates natural carbon sinks. Industrial manufacturing and cement production also contribute. Natural factors like volcanic activity play a minor role.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both identify fossil fuel burning as the primary cause",
+        "Both mention deforestation as a contributing factor",
+        "Both agree greenhouse gases are the mechanism driving temperature rise"
+      ],
+      "contradictions": [
+        "Response 2 provides more detail on agricultural sources (methane from livestock, nitrous oxide from fertilizers) that Response 1 glosses over",
+        "Response 2 acknowledges natural factors like volcanic activity while Response 1 does not"
+      ],
+      "hallucinationRisk": {
+        "response1": 8,
+        "response2": 6
+      },
+      "reliabilityScore": {
+        "response1": 90,
+        "response2": 94
+      },
+      "bestAnswer": "response2",
+      "finalSynthesis": "Climate change is primarily caused by human activities that release greenhouse gases into the atmosphere. Burning fossil fuels is the largest contributor, releasing CO2 and methane. Agriculture contributes through livestock methane and fertilizer nitrous oxide emissions. Deforestation removes natural carbon sinks. Industrial processes including cement production add further emissions. While natural factors like volcanic activity exist, they play a negligible role compared to human-driven causes."
+    },
+    "createdAt": "2025-05-28T08:30:00.000Z"
+  },
+  {
+    "id": 1716854600000,
+    "question": "How does machine learning work?",
+    "response1": "Machine learning is a subset of AI where algorithms learn from data to make predictions or decisions without being explicitly programmed. The system is trained on labeled datasets, adjusting internal parameters (weights) to minimize errors. Common types include supervised learning (labeled data), unsupervised learning (finding patterns), and reinforcement learning (learning through rewards).",
+    "response2": "Machine learning works by training algorithms on large datasets to identify patterns and make predictions. Neural networks, inspired by the human brain, are a popular ML approach where layers of nodes process and transform data. The training process involves forward propagation to make predictions and backpropagation to correct errors by adjusting weights. Deep learning uses many layers for complex tasks like image recognition.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both agree ML involves learning from data without explicit programming",
+        "Both mention the concept of adjusting weights/parameters during training",
+        "Both acknowledge pattern recognition as a core function"
+      ],
+      "contradictions": [
+        "Response 1 categorizes ML into three types (supervised, unsupervised, reinforcement) while Response 2 focuses on neural network architecture",
+        "Response 2 explains backpropagation specifically while Response 1 uses more general terminology"
+      ],
+      "hallucinationRisk": {
+        "response1": 10,
+        "response2": 13
+      },
+      "reliabilityScore": {
+        "response1": 87,
+        "response2": 85
+      },
+      "bestAnswer": "response1",
+      "finalSynthesis": "Machine learning enables algorithms to learn from data and improve predictions without explicit programming. Training involves exposing models to datasets and adjusting internal weights to minimize prediction errors through techniques like backpropagation. The field encompasses supervised learning (labeled data), unsupervised learning (pattern discovery), and reinforcement learning (reward-based). Neural networks and deep learning extend these principles to tackle complex tasks like image recognition and natural language processing."
+    },
+    "createdAt": "2025-05-28T09:00:00.000Z"
+  },
+  {
+    "id": 1716854700000,
+    "question": "What is the difference between AI, machine learning, and deep learning?",
+    "response1": "AI is the broadest concept — any technique enabling machines to mimic human intelligence. Machine learning is a subset of AI where systems learn from data. Deep learning is a subset of ML using neural networks with many layers. Think of it as nested circles: AI contains ML, which contains deep learning. Each inner circle is more specialized and data-hungry than the outer one.",
+    "response2": "Artificial Intelligence encompasses all methods making computers act intelligently. Machine Learning is a specific AI approach where algorithms improve through experience with data, without being explicitly programmed for each task. Deep Learning is a specialized ML technique using multi-layered neural networks that automatically extract features from raw data, excelling at perception tasks like vision and speech recognition.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both correctly establish the nested relationship: AI > ML > Deep Learning",
+        "Both agree ML involves learning from data without explicit programming",
+        "Both identify deep learning as using neural networks"
+      ],
+      "contradictions": [
+        "Response 1 uses an accessible analogy (nested circles) while Response 2 is more technically precise",
+        "Response 2 specifically mentions perception tasks as deep learning strengths; Response 1 does not"
+      ],
+      "hallucinationRisk": {
+        "response1": 5,
+        "response2": 7
+      },
+      "reliabilityScore": {
+        "response1": 92,
+        "response2": 91
+      },
+      "bestAnswer": "response1",
+      "finalSynthesis": "AI, ML, and Deep Learning form a nested hierarchy. Artificial Intelligence is the broadest field encompassing any technique that enables machines to simulate human intelligence. Machine Learning is an AI subset where algorithms learn and improve from data experience. Deep Learning is a specialized ML approach using multi-layered neural networks that automatically extract hierarchical features from raw data, making it particularly powerful for perception tasks like image recognition, speech processing, and natural language understanding."
+    },
+    "createdAt": "2025-05-28T09:30:00.000Z"
+  },
+  {
+    "id": 1716854800000,
+    "question": "What are the pros and cons of renewable energy?",
+    "response1": "Pros: Renewable energy (solar, wind, hydro) produces minimal greenhouse gas emissions, reduces dependence on fossil fuels, and has decreasing costs. It creates jobs and provides energy security. Cons: Intermittency is a major challenge — solar doesn't work at night, wind requires wind. High upfront installation costs, land use requirements, and grid integration challenges remain significant hurdles.",
+    "response2": "Renewable energy advantages include environmental sustainability, infinite fuel sources, reduced carbon emissions, and long-term cost savings. Solar and wind costs have dropped dramatically. Disadvantages include variability and storage challenges, high initial capital costs, geographic limitations (not all areas are sunny or windy), visual and noise impacts, and the need for significant grid infrastructure upgrades to handle distributed generation.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both identify reduced carbon emissions as a key advantage",
+        "Both agree intermittency/variability is a major challenge",
+        "Both mention high upfront costs as a disadvantage"
+      ],
+      "contradictions": [
+        "Response 1 emphasizes job creation as a benefit while Response 2 does not mention it",
+        "Response 2 mentions geographic limitations and visual/noise impacts that Response 1 omits"
+      ],
+      "hallucinationRisk": {
+        "response1": 9,
+        "response2": 8
+      },
+      "reliabilityScore": {
+        "response1": 88,
+        "response2": 89
+      },
+      "bestAnswer": "response2",
+      "finalSynthesis": "Renewable energy offers significant advantages including near-zero operational emissions, infinite fuel sources, declining costs, job creation, and enhanced energy security. However, key challenges remain: intermittency requires storage solutions, high upfront capital costs, geographic constraints limit viability in some regions, and grid infrastructure needs major upgrades. Despite these hurdles, the long-term environmental and economic benefits make renewable energy a critical component of sustainable energy strategy."
+    },
+    "createdAt": "2025-05-28T10:00:00.000Z"
+  },
+  {
+    "id": 1716854900000,
+    "question": "How does the internet work?",
+    "response1": "The internet is a global network of interconnected computers communicating via standardized protocols (TCP/IP). Data is broken into packets, routed through various nodes, and reassembled at the destination. DNS translates domain names to IP addresses. Your ISP connects you to the backbone network, and HTTP/HTTPS protocols govern web browsing.",
+    "response2": "The internet works through a layered system of protocols and physical infrastructure. When you request a website, your device sends a request through your router to your ISP, which routes it across fiber optic cables and servers worldwide. TCP/IP breaks data into packets for efficient transmission. DNS servers act like phonebooks, converting URLs to IP addresses. Web servers respond with the requested content.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both correctly explain TCP/IP as the foundational protocol",
+        "Both describe packet-based data transmission",
+        "Both explain DNS as translating domain names to IP addresses"
+      ],
+      "contradictions": [
+        "Response 2 mentions physical infrastructure (fiber optic cables) while Response 1 stays abstract",
+        "Response 1 mentions HTTP/HTTPS protocols which Response 2 omits"
+      ],
+      "hallucinationRisk": {
+        "response1": 7,
+        "response2": 9
+      },
+      "reliabilityScore": {
+        "response1": 91,
+        "response2": 89
+      },
+      "bestAnswer": "response1",
+      "finalSynthesis": "The internet is a global network of computers communicating through standardized TCP/IP protocols. Data is broken into packets, transmitted across physical infrastructure including fiber optic cables, routed through ISPs and backbone networks, and reassembled at destinations. DNS servers translate human-readable domain names into IP addresses. HTTP/HTTPS protocols govern web communication, enabling the seamless exchange of information that powers modern web browsing and online services."
+    },
+    "createdAt": "2025-05-28T10:30:00.000Z"
+  },
+  {
+    "id": 1716855000000,
+    "question": "What is blockchain technology?",
+    "response1": "Blockchain is a distributed ledger technology where data is stored in linked blocks across a network of computers. Each block contains a cryptographic hash of the previous block, making it tamper-resistant. No single entity controls it. Originally designed for Bitcoin, blockchain now powers smart contracts, supply chain tracking, and decentralized applications (dApps).",
+    "response2": "Blockchain is a decentralized, immutable digital ledger that records transactions across multiple computers. Data is grouped into blocks, each containing a hash linking it to the previous block, creating an unalterable chain. Consensus mechanisms like Proof of Work or Proof of Stake validate new transactions. Beyond cryptocurrency, blockchain enables transparent supply chains, digital identity verification, and programmable smart contracts.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both correctly describe the linked block structure with cryptographic hashes",
+        "Both agree on decentralization as a key property",
+        "Both mention smart contracts and supply chain as use cases beyond cryptocurrency"
+      ],
+      "contradictions": [
+        "Response 2 explains consensus mechanisms (PoW, PoS) which Response 1 does not address",
+        "Response 1 specifically credits Bitcoin as the origin while Response 2 is more generic"
+      ],
+      "hallucinationRisk": {
+        "response1": 11,
+        "response2": 10
+      },
+      "reliabilityScore": {
+        "response1": 86,
+        "response2": 89
+      },
+      "bestAnswer": "response2",
+      "finalSynthesis": "Blockchain is a decentralized, immutable distributed ledger where data is stored in cryptographically linked blocks across a network of computers. Originally created for Bitcoin, each block contains a hash of the previous block, making tampering practically impossible. Consensus mechanisms like Proof of Work and Proof of Stake validate new transactions without central authority. Beyond cryptocurrency, blockchain enables transparent supply chains, digital identity systems, smart contracts, and decentralized applications."
+    },
+    "createdAt": "2025-05-28T11:00:00.000Z"
+  },
+  {
+    "id": 1716855100000,
+    "question": "What is the difference between supervised and unsupervised learning?",
+    "response1": "Supervised learning uses labeled training data — the algorithm learns to map inputs to known outputs. Examples include spam detection and image classification. Unsupervised learning finds hidden patterns in unlabeled data without predefined answers. Examples include customer segmentation and anomaly detection. The key difference is whether you provide the correct answers during training.",
+    "response2": "In supervised learning, models train on labeled datasets where each input has a corresponding correct output, learning to predict labels for new data. Regression and classification are common supervised tasks. Unsupervised learning works with unlabeled data, discovering inherent structure through clustering (K-means), dimensionality reduction (PCA), or generative modeling. There's also semi-supervised learning that combines both approaches.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both correctly define supervised learning as requiring labeled data with known outputs",
+        "Both agree unsupervised learning discovers patterns in unlabeled data",
+        "Both provide concrete examples for each type"
+      ],
+      "contradictions": [
+        "Response 2 mentions semi-supervised learning as a hybrid approach, Response 1 does not",
+        "Response 2 names specific algorithms (K-means, PCA) while Response 1 uses higher-level examples"
+      ],
+      "hallucinationRisk": {
+        "response1": 6,
+        "response2": 8
+      },
+      "reliabilityScore": {
+        "response1": 91,
+        "response2": 90
+      },
+      "bestAnswer": "response1",
+      "finalSynthesis": "Supervised learning trains models on labeled datasets where correct input-output pairs are provided, enabling prediction on new data through regression and classification tasks. Unsupervised learning discovers hidden patterns and structure in unlabeled data through techniques like clustering (K-means) and dimensionality reduction (PCA). The fundamental difference is the presence of labeled training data. Semi-supervised learning bridges both approaches, using small amounts of labeled data alongside larger unlabeled datasets."
+    },
+    "createdAt": "2025-05-28T11:30:00.000Z"
+  },
+  {
+    "id": 1716855200000,
+    "question": "What are large language models (LLMs)?",
+    "response1": "Large Language Models are AI systems trained on massive text datasets to understand and generate human language. They use transformer architecture with billions of parameters. LLMs like GPT-4 and Gemini can write, summarize, translate, code, and reason. They predict the next token based on context, enabling coherent long-form text generation. Fine-tuning adapts them for specific tasks.",
+    "response2": "Large Language Models are deep learning systems with billions to trillions of parameters, trained on diverse internet-scale text data. Built on the transformer architecture introduced in 2017, they learn language patterns, facts, and reasoning through self-supervised learning on next-token prediction. LLMs demonstrate emergent capabilities like in-context learning and chain-of-thought reasoning not explicitly trained for.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both correctly identify transformer architecture as the foundation of LLMs",
+        "Both agree LLMs are trained on massive text datasets",
+        "Both mention next-token prediction as the core training objective"
+      ],
+      "contradictions": [
+        "Response 2 mentions emergent capabilities like in-context learning which Response 1 does not cover",
+        "Response 1 mentions fine-tuning for specific tasks while Response 2 focuses on base model capabilities"
+      ],
+      "hallucinationRisk": {
+        "response1": 13,
+        "response2": 11
+      },
+      "reliabilityScore": {
+        "response1": 85,
+        "response2": 88
+      },
+      "bestAnswer": "response2",
+      "finalSynthesis": "Large Language Models are massive deep learning systems built on transformer architecture, trained on internet-scale text data through self-supervised next-token prediction. With billions to trillions of parameters, they develop broad language understanding and generation capabilities including writing, summarization, translation, coding, and reasoning. LLMs exhibit emergent capabilities like in-context learning and chain-of-thought reasoning. Fine-tuning and prompt engineering adapt these general models for specific applications."
+    },
+    "createdAt": "2025-05-28T12:00:00.000Z"
+  },
+  {
+    "id": 1716855300000,
+    "question": "What is cybersecurity and why is it important?",
+    "response1": "Cybersecurity is the practice of protecting computer systems, networks, and data from digital attacks, theft, and damage. It encompasses network security, application security, and information security. With increasing digitization of sensitive data and critical infrastructure, cybersecurity is essential to prevent financial losses, protect privacy, maintain business continuity, and safeguard national security.",
+    "response2": "Cybersecurity involves technologies, processes, and practices designed to protect digital systems from unauthorized access, attacks, and data breaches. Key domains include endpoint security, network security, cloud security, and identity management. As businesses and governments rely more on digital infrastructure, cyber threats like ransomware, phishing, and state-sponsored attacks pose existential risks requiring robust security frameworks.",
+    "evaluator": "Gemini",
+    "result": {
+      "agreements": [
+        "Both define cybersecurity as protecting digital systems from unauthorized access and attacks",
+        "Both emphasize increasing importance due to digital transformation",
+        "Both mention multiple security domains as components"
+      ],
+      "contradictions": [
+        "Response 2 names specific threat types (ransomware, phishing, state-sponsored attacks) while Response 1 stays general",
+        "Response 1 mentions national security implications while Response 2 focuses on business risks"
+      ],
+      "hallucinationRisk": {
+        "response1": 7,
+        "response2": 9
+      },
+      "reliabilityScore": {
+        "response1": 90,
+        "response2": 88
+      },
+      "bestAnswer": "mixed",
+      "finalSynthesis": "Cybersecurity encompasses technologies, processes, and practices that protect computer systems, networks, and data from unauthorized access, attacks, and breaches. Key domains include network security, endpoint security, cloud security, and identity management. Its importance has grown exponentially with digital transformation — cyber threats like ransomware, phishing, and state-sponsored attacks can cause massive financial losses, compromise personal privacy, disrupt critical infrastructure, and threaten national security. Robust cybersecurity frameworks are now essential for organizations of all sizes."
+    },
+    "createdAt": "2025-05-28T12:30:00.000Z"
   }
 ]
