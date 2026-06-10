@@ -38,6 +38,8 @@ export async function POST(req: Request) {
       subjectGuideline = "Focus on correct application of physical laws, unit consistency, mathematical derivations, and experimental evaluation.";
     } else if (subject.toLowerCase() === "maths" || subject.toLowerCase() === "mathematics") {
       subjectGuideline = "Focus on logical proof structure, correct method selection, algebraic accuracy, and clear working shown at each step.";
+    } else if (subject.toLowerCase() === "psychology") {
+      subjectGuideline = "Focus on psychological theories, research studies, methodology evaluation, and ethical considerations.";
     }
 
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });

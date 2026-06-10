@@ -25,8 +25,7 @@ type EvalResult = {
   citations?: Citation[];
 };
 
-const SUBJECTS = ["Economics", "Business", "Physics", "Maths", "History", "Sociology"];
-
+const SUBJECTS = ["Economics", "Business", "Physics", "Maths", "History", "Psychology"];
 const STUDY_MODES = [
   { key: "socratic", label: "🧭 Guide Me", desc: "Socratic hints" },
   { key: "scaffold", label: "🧱 Base Concepts", desc: "Step by step" },

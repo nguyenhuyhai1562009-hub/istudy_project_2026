@@ -40,7 +40,7 @@ export async function GET(req: Request) {
       return NextResponse.json(data ?? []);
     }
 
-    const subjects = ["economics", "business", "physics", "maths", "history", "sociology"];
+    const subjects = ["economics", "business", "physics", "maths", "history", "psychology"];
     const summary: Record<string, any> = {};
 
     for (const s of subjects) {

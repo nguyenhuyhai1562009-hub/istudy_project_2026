@@ -24,7 +24,7 @@ TEXT: ${text}
 `);
 
     const raw = result.response.text().trim().replace(/[^a-zA-Z]/g, "");
-    const allowed = ["Economics", "Business", "Physics", "Maths", "History", "Sociology"];
+    const allowed = ["Economics", "Business", "Physics", "Maths", "History", "Psychology"];
     const subject = allowed.find(s => s.toLowerCase() === raw.toLowerCase()) || "Economics";
 
     return NextResponse.json({ subject });
