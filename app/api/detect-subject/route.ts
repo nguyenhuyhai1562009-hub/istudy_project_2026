@@ -17,8 +17,7 @@ export async function POST(req: Request) {
 
     const result = await model.generateContent(`
 Detect the academic subject of the following exam question or text.
-Return ONLY one word from this exact list: Economics, Business, Physics, Maths, History, Sociology
-If unsure, return: Economics
+Return ONLY one word from this exact list: Economics, Business, Physics, Maths, History, Psychology
 
 TEXT: ${text}
 `);

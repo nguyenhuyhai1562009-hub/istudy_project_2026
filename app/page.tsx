@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import AnnotationOverlay from "@/components/AnnotationOverlay";
-import TrustPanel from "@/components/TrustPanel";
 
-type Breakdown = { score: number; feedback: string; };
-type Annotation = { keyword: string; type: string; context: string; suggestion: string; };
-type Improvement = { category: string; defect: string; fix: string; };
-type Citation = { claim: string; source: string; reference: string; };
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+type Breakdown = { score: number; feedback: string };
+type Annotation = { keyword: string; type: string; context: string; suggestion: string };
+type Improvement = { category: string; defect: string; fix: string };
+type Citation = { claim: string; source: string; reference: string };
 
 type EvalResult = {
   subject: string;
@@ -25,359 +26,631 @@ type EvalResult = {
   citations?: Citation[];
 };
 
+type TrustResult = {
+  reliabilityScore: number;
+  hallucinationRisk: number;
+  trustLabel: string;
+  summary: string;
+};
+
+type Message =
+  | { role: "user"; content: string; imagePreview?: string }
+  | { role: "assistant"; type: "eval"; result: EvalResult; answer: string }
+  | { role: "assistant"; type: "study"; content: string; mode: string }
+  | { role: "assistant"; type: "text"; content: string; trust?: TrustResult };
+
+type ChatPhase = "idle" | "has_question" | "has_eval";
+
 const SUBJECTS = ["Economics", "Business", "Physics", "Maths", "History", "Psychology"];
+
 const STUDY_MODES = [
-  { key: "socratic", label: "🧭 Guide Me", desc: "Socratic hints" },
-  { key: "scaffold", label: "🧱 Base Concepts", desc: "Step by step" },
-  { key: "exam_drill", label: "🎯 Exam Drill", desc: "Mark scheme focus" },
+  { key: "socratic", label: "Guide Me", icon: "🧭", desc: "Socratic hints only" },
+  { key: "scaffold", label: "Base Concepts", icon: "🧱", desc: "Step-by-step theory" },
+  { key: "exam_drill", label: "Exam Drill", icon: "🎯", desc: "Mark scheme focus" },
 ];
 
+const scoreColor = (s: number) =>
+  s >= 4 ? "#4ade80" : s >= 3 ? "#facc15" : "#f87171";
+
+// ─── Silent Trust Guard ───────────────────────────────────────────────────────
+
+async function runSilentTrust(
+  question: string,
+  answer: string,
+  subject: string
+): Promise<TrustResult | null> {
+  try {
+    const res = await fetch("/api/trust", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question, answer, subject }),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+// ─── Option Chips ─────────────────────────────────────────────────────────────
+
+function getChips(phase: ChatPhase, lastResult?: EvalResult): string[] {
+  if (phase === "idle") return [];
+  if (phase === "has_question") return [
+    "🔍 Explain the question",
+    "🧭 Guide me (Socratic)",
+    "🎯 Mark scheme breakdown",
+  ];
+  if (phase === "has_eval") {
+    const weakest = lastResult
+      ? Object.entries(lastResult.breakdown).sort((a, b) => a[1].score - b[1].score)[0][0]
+      : "Evaluation";
+    return [
+      `💡 Why is my ${weakest} score low?`,
+      "📝 Show a model answer",
+      "🔁 Give me a similar question",
+    ];
+  }
+  return [];
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
 export default function Home() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
   const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
   const [subject, setSubject] = useState("Economics");
+  const [phase, setPhase] = useState<ChatPhase>("idle");
+  const [lastResult, setLastResult] = useState<EvalResult | undefined>();
+
+  const [loading, setLoading] = useState(false);
+  const [loadingLabel, setLoadingLabel] = useState("");
+  const [error, setError] = useState("");
+
+  const [activeMode, setActiveMode] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [ocrMode, setOcrMode] = useState<"question" | "answer">("answer");
-  const [loading, setLoading] = useState(false);
-  const [loadingStep, setLoadingStep] = useState("");
-  const [error, setError] = useState("");
-  const [result, setResult] = useState<EvalResult | null>(null);
+  const [ocrTarget, setOcrTarget] = useState<"question" | "answer">("answer");
+
+  const [quoteText, setQuoteText] = useState("");
+
   const fileRef = useRef<HTMLInputElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const [studyMode, setStudyMode] = useState("socratic");
-  const [studyLoading, setStudyLoading] = useState(false);
-  const [studyResponse, setStudyResponse] = useState("");
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
 
-  function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
-  }
+  // ── Quote on text selection ────────────────────────────────────────────────
+  useEffect(() => {
+    function onMouseUp() {
+      const sel = window.getSelection()?.toString().trim();
+      if (sel && sel.length > 10 && sel.length < 300) {
+        setQuoteText(sel);
+        setInput(`> "${sel}"\n\n`);
+        textareaRef.current?.focus();
+      }
+    }
+    document.addEventListener("mouseup", onMouseUp);
+    return () => document.removeEventListener("mouseup", onMouseUp);
+  }, []);
 
+  // ── OCR ───────────────────────────────────────────────────────────────────
   async function runOCR() {
     if (!imageFile) return;
-    setLoadingStep("Extracting text from image...");
     setLoading(true);
+    setLoadingLabel("Extracting text from image...");
     try {
-      const formData = new FormData();
-      formData.append("image", imageFile);
-      const res = await fetch("/api/ocr", { method: "POST", body: formData });
+      const form = new FormData();
+      form.append("image", imageFile);
+      const res = await fetch("/api/ocr", { method: "POST", body: form });
       const data = await res.json();
-      if (data.text) {
-        if (ocrMode === "answer") setAnswer(data.text);
-        else setQuestion(data.text);
-        const detectRes = await fetch("/api/detect-subject", {
+      if (!data.text) { setError("OCR failed."); return; }
+
+      if (ocrTarget === "question") {
+        setQuestion(data.text);
+        setPhase("has_question");
+        setInput("");
+        // auto detect subject
+        const dr = await fetch("/api/detect-subject", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text: data.text }),
         });
-        const detectData = await detectRes.json();
-        if (detectData.subject && SUBJECTS.includes(detectData.subject)) {
-          setSubject(detectData.subject);
-        }
+        const dd = await dr.json();
+        if (dd.subject && SUBJECTS.includes(dd.subject)) setSubject(dd.subject);
+        addMessage({ role: "assistant", type: "text", content: `📄 Question extracted:\n\n${data.text}` });
       } else {
-        setError("OCR failed to extract text.");
+        setInput(data.text);
       }
+      setImageFile(null);
+      setImagePreview(null);
     } catch {
       setError("OCR request failed.");
     } finally {
       setLoading(false);
-      setLoadingStep("");
+      setLoadingLabel("");
     }
   }
 
-  async function runStudyMode() {
-    if (!question.trim()) { setError("Please enter a question first."); return; }
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function addMessage(msg: Message) {
+    setMessages((prev) => [...prev, msg]);
+  }
+
+  // ── Send message / chip ───────────────────────────────────────────────────
+  async function send(text?: string) {
+    const content = (text || input).trim();
+    if (!content) return;
+    setInput("");
+    setQuoteText("");
     setError("");
-    setStudyLoading(true);
-    setStudyResponse("");
-    try {
-      const res = await fetch("/api/study", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, subject, mode: studyMode }),
-      });
-      const data = await res.json();
-      if (data.text) setStudyResponse(data.text);
-      else setError(data.error || "Study mode failed.");
-    } catch {
-      setError("Something went wrong.");
-    } finally {
-      setStudyLoading(false);
-    }
-  }
 
-  async function runEvaluation() {
-    if (!question.trim() || !answer.trim()) {
-      setError("Please provide both a question and an answer.");
+    addMessage({ role: "user", content, imagePreview: imagePreview ?? undefined });
+    setImageFile(null);
+    setImagePreview(null);
+
+    // ── If no question set yet, treat this as the question ─────────────────
+    if (!question) {
+      setQuestion(content);
+      setPhase("has_question");
+      setLoading(true);
+      setLoadingLabel("Detecting subject...");
+      try {
+        const dr = await fetch("/api/detect-subject", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: content }),
+        });
+        const dd = await dr.json();
+        if (dd.subject && SUBJECTS.includes(dd.subject)) setSubject(dd.subject);
+        addMessage({
+          role: "assistant",
+          type: "text",
+          content: `Got it. Subject detected: **${dd.subject || subject}**.\n\nPaste your answer when ready, or use a study mode to explore first.`,
+        });
+      } finally {
+        setLoading(false);
+        setLoadingLabel("");
+      }
       return;
     }
-    setError("");
+
+    // ── Study mode chips ───────────────────────────────────────────────────
+    const studyChipMap: Record<string, string> = {
+      "🧭 Guide me (Socratic)": "socratic",
+      "🔁 Give me a similar question": "exam_drill",
+      "🎯 Mark scheme breakdown": "exam_drill",
+      "🔍 Explain the question": "scaffold",
+    };
+
+    if (studyChipMap[content] || activeMode) {
+      const mode = studyChipMap[content] || activeMode || "scaffold";
+      setLoading(true);
+      setLoadingLabel("Thinking...");
+      try {
+        const res = await fetch("/api/study", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question, subject, mode }),
+        });
+        const data = await res.json();
+        addMessage({ role: "assistant", type: "study", content: data.text || data.error, mode });
+      } finally {
+        setLoading(false);
+        setLoadingLabel("");
+        setActiveMode(null);
+      }
+      return;
+    }
+
+    // ── Improvement chip ───────────────────────────────────────────────────
+    if (content.startsWith("💡 Why is my") || content.startsWith("📝 Show a model answer")) {
+      setLoading(true);
+      setLoadingLabel("Thinking...");
+      try {
+        const res = await fetch("/api/study", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            question: `${question}\n\nContext: ${content}`,
+            subject,
+            mode: "exam_drill",
+          }),
+        });
+        const data = await res.json();
+        addMessage({ role: "assistant", type: "study", content: data.text || data.error, mode: "exam_drill" });
+      } finally {
+        setLoading(false);
+        setLoadingLabel("");
+      }
+      return;
+    }
+
+    // ── Evaluate: content is the student's answer ──────────────────────────
     setLoading(true);
-    setResult(null);
-    setLoadingStep("Evaluating with Examiner AI...");
+    setLoadingLabel("Evaluating...");
     try {
       const res = await fetch("/api/evaluate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, response1: answer, response2: "", evaluator: "Gemini", subject }),
+        body: JSON.stringify({
+          question,
+          response1: content,
+          response2: "",
+          evaluator: "Gemini",
+          subject,
+        }),
       });
-      const data = await res.json();
-      if (!res.ok) { setError(data.error || "Evaluation failed."); return; }
-      setResult(data);
-      await fetch("/api/weakness", {
+      const data: EvalResult = await res.json();
+      if (!res.ok) { setError((data as any).error || "Evaluation failed."); return; }
+
+      addMessage({ role: "assistant", type: "eval", result: data, answer: content });
+      setLastResult(data);
+      setPhase("has_eval");
+
+      // save weakness data
+      fetch("/api/weakness", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ subject, scores: data.breakdown, improvements: data.improvements }),
       });
-    } catch {
-      setError("Something went wrong.");
+
+      // silent trust guard
+      setLoadingLabel("Verifying reliability...");
+      const trust = await runSilentTrust(question, content, subject);
+      if (trust && trust.hallucinationRisk > 30) {
+        setMessages((prev) =>
+          prev.map((m, i) =>
+            i === prev.length - 1 && m.role === "assistant" && m.type === "eval"
+              ? { ...m, trust }
+              : m
+          ) as Message[]
+        );
+      }
     } finally {
       setLoading(false);
-      setLoadingStep("");
+      setLoadingLabel("");
     }
   }
 
-  const scoreColor = (s: number) =>
-    s >= 4 ? "text-green-400" : s >= 3 ? "text-yellow-400" : "text-red-400";
+  // ── Render ─────────────────────────────────────────────────────────────────
+  const chips = getChips(phase, lastResult);
 
   return (
-    <main className="min-h-screen bg-black text-white">
-      <div className="max-w-5xl mx-auto p-6 space-y-6">
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "#0a0a0a", color: "#e5e5e5", fontFamily: "var(--font-geist-sans, sans-serif)" }}>
 
-        {/* HEADER */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold">iStudy AI</h1>
-            <p className="text-gray-400 mt-1">Upload your answer. Get examiner-level feedback.</p>
-          </div>
-          <div className="flex gap-3">
-            <Link href="/weakness" className="bg-gray-900 border border-gray-800 px-4 py-3 rounded-xl hover:bg-gray-800 transition text-sm">
-              Weaknesses
-            </Link>
-            <Link href="/history" className="bg-gray-900 border border-gray-800 px-4 py-3 rounded-xl hover:bg-gray-800 transition text-sm">
-              History
-            </Link>
+      {/* ── Header ── */}
+      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 20px", borderBottom: "0.5px solid #222", background: "#0a0a0a", position: "sticky", top: 0, zIndex: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <span style={{ fontSize: 18, fontWeight: 600, letterSpacing: "-0.02em" }}>iStudy AI</span>
+          {/* Subject pills */}
+          <div style={{ display: "flex", gap: 6 }}>
+            {SUBJECTS.map((s) => (
+              <button
+                key={s}
+                onClick={() => setSubject(s)}
+                style={{
+                  padding: "3px 10px", borderRadius: 20, fontSize: 12, cursor: "pointer", border: "0.5px solid",
+                  background: subject === s ? "#2563eb" : "transparent",
+                  borderColor: subject === s ? "#2563eb" : "#333",
+                  color: subject === s ? "#fff" : "#888",
+                  transition: "all 0.15s",
+                }}
+              >
+                {s}
+              </button>
+            ))}
           </div>
         </div>
-
-        {/* INPUT PANEL */}
-        <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 space-y-5">
-
-          {/* Subject */}
-          <div>
-            <label className="text-sm text-gray-400 mb-2 block">Subject</label>
-            <div className="flex gap-2 flex-wrap">
-              {SUBJECTS.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setSubject(s)}
-                  className={`px-4 py-2 rounded-lg text-sm transition ${
-                    subject === s
-                      ? "bg-blue-600 text-white"
-                      : "bg-black border border-gray-800 text-gray-400 hover:border-gray-600"
-                  }`}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Question */}
-          <div>
-            <label className="text-sm text-gray-400 mb-2 block">Exam Question</label>
-            <textarea
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Paste the exam question here..."
-              rows={3}
-              className="w-full bg-black border border-gray-800 rounded-xl p-4 resize-none outline-none focus:border-blue-500 text-sm"
-            />
-          </div>
-
-          {/* Answer */}
-          <div>
-            <label className="text-sm text-gray-400 mb-2 block">Your Answer</label>
-            <textarea
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-              placeholder="Paste or type your answer here, or upload an image below..."
-              rows={5}
-              className="w-full bg-black border border-gray-800 rounded-xl p-4 resize-none outline-none focus:border-blue-500 text-sm"
-            />
-          </div>
-
-          {/* OCR */}
-          <div className="border border-dashed border-gray-700 rounded-xl p-4 space-y-3">
-            <p className="text-sm text-gray-400">Or upload an image to extract text via OCR</p>
-            <div className="flex items-center gap-3 flex-wrap">
-              <select
-                value={ocrMode}
-                onChange={(e) => setOcrMode(e.target.value as "question" | "answer")}
-                className="bg-black border border-gray-800 rounded-lg px-3 py-2 text-sm"
-              >
-                <option value="answer">Extract into: Answer</option>
-                <option value="question">Extract into: Question</option>
-              </select>
-              <button
-                onClick={() => fileRef.current?.click()}
-                className="bg-gray-800 hover:bg-gray-700 transition px-4 py-2 rounded-lg text-sm"
-              >
-                Choose Image
-              </button>
-              {imageFile && (
-                <button
-                  onClick={runOCR}
-                  disabled={loading}
-                  className="bg-purple-600 hover:bg-purple-500 transition px-4 py-2 rounded-lg text-sm disabled:opacity-50"
-                >
-                  Extract Text
-                </button>
-              )}
-              <input ref={fileRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-            </div>
-            {imagePreview && (
-              <img src={imagePreview} alt="Preview" className="max-h-48 rounded-lg border border-gray-700 object-contain" />
-            )}
-          </div>
-
-          {/* Study Mode */}
-          <div className="bg-black border border-gray-800 rounded-xl p-4 space-y-3">
-            <label className="text-sm text-gray-400 block">Study Mode — learn before submitting</label>
-            <div className="flex gap-2 flex-wrap">
-              {STUDY_MODES.map((m) => (
-                <button
-                  key={m.key}
-                  onClick={() => setStudyMode(m.key)}
-                  className={`px-4 py-2 rounded-lg text-sm transition flex flex-col items-start ${
-                    studyMode === m.key
-                      ? "bg-purple-600 text-white"
-                      : "bg-gray-900 border border-gray-800 text-gray-400 hover:border-gray-600"
-                  }`}
-                >
-                  <span>{m.label}</span>
-                  <span className="text-xs opacity-70">{m.desc}</span>
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={runStudyMode}
-              disabled={studyLoading}
-              className="bg-purple-700 hover:bg-purple-600 transition px-5 py-2 rounded-lg text-sm disabled:opacity-50"
-            >
-              {studyLoading ? "Thinking..." : "Ask Study Mode"}
-            </button>
-            {studyResponse && (
-              <div className="bg-[#111111] border border-purple-800/40 rounded-xl p-4 text-gray-200 text-sm leading-7 whitespace-pre-wrap">
-                {studyResponse}
-              </div>
-            )}
-          </div>
-
+        <div style={{ display: "flex", gap: 8 }}>
+          <Link href="/weakness" style={{ padding: "6px 14px", borderRadius: 10, fontSize: 13, background: "transparent", border: "0.5px solid #333", color: "#aaa", textDecoration: "none" }}>Analytics</Link>
+          <Link href="/history" style={{ padding: "6px 14px", borderRadius: 10, fontSize: 13, background: "transparent", border: "0.5px solid #333", color: "#aaa", textDecoration: "none" }}>History</Link>
           <button
-            onClick={runEvaluation}
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-500 transition rounded-xl py-3 font-medium disabled:opacity-50"
+            onClick={() => { setMessages([]); setQuestion(""); setPhase("idle"); setLastResult(undefined); setInput(""); }}
+            style={{ padding: "6px 14px", borderRadius: 10, fontSize: 13, background: "#1a1a2e", border: "0.5px solid #2563eb", color: "#60a5fa", cursor: "pointer" }}
           >
-            {loading ? loadingStep : "Get Examiner Feedback"}
+            New chat
+          </button>
+        </div>
+      </header>
+
+      {/* ── Study mode toolbar ── */}
+      <div style={{ display: "flex", gap: 6, padding: "8px 20px", borderBottom: "0.5px solid #1a1a1a", background: "#0d0d0d" }}>
+        {STUDY_MODES.map((m) => (
+          <button
+            key={m.key}
+            onClick={() => setActiveMode(activeMode === m.key ? null : m.key)}
+            title={m.desc}
+            style={{
+              display: "flex", alignItems: "center", gap: 5, padding: "5px 12px", borderRadius: 8, fontSize: 12, cursor: "pointer", border: "0.5px solid", transition: "all 0.15s",
+              background: activeMode === m.key ? "#4f46e5" : "transparent",
+              borderColor: activeMode === m.key ? "#4f46e5" : "#2a2a2a",
+              color: activeMode === m.key ? "#fff" : "#777",
+            }}
+          >
+            <span>{m.icon}</span> {m.label}
+          </button>
+        ))}
+        {activeMode && (
+          <span style={{ fontSize: 11, color: "#555", alignSelf: "center", marginLeft: 4 }}>
+            — next message uses {activeMode} mode
+          </span>
+        )}
+      </div>
+
+      {/* ── Message thread ── */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px", display: "flex", flexDirection: "column", gap: 20 }}>
+
+        {/* Empty state */}
+        {messages.length === 0 && (
+          <div style={{ margin: "auto", textAlign: "center", maxWidth: 480, color: "#444" }}>
+            <div style={{ fontSize: 40, marginBottom: 16 }}>📚</div>
+            <p style={{ fontSize: 16, color: "#666", marginBottom: 8 }}>Paste your exam question to get started.</p>
+            <p style={{ fontSize: 13, color: "#444" }}>Or upload an image below — OCR will extract the text automatically.</p>
+          </div>
+        )}
+
+        {messages.map((msg, i) => {
+          if (msg.role === "user") return (
+            <div key={i} style={{ display: "flex", justifyContent: "flex-end" }}>
+              <div style={{ maxWidth: "72%", background: "#1a1a2e", border: "0.5px solid #2a2a4a", borderRadius: "16px 16px 4px 16px", padding: "10px 14px", fontSize: 14, lineHeight: 1.6, color: "#d0d0e8", whiteSpace: "pre-wrap" }}>
+                {msg.imagePreview && <img src={msg.imagePreview} alt="" style={{ maxHeight: 120, borderRadius: 8, marginBottom: 8, display: "block" }} />}
+                {msg.content}
+              </div>
+            </div>
+          );
+
+          if (msg.role === "assistant" && msg.type === "text") return (
+            <div key={i} style={{ display: "flex", gap: 10, maxWidth: "80%" }}>
+              <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#1e1e2e", border: "0.5px solid #333", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0, marginTop: 2 }}>A</div>
+              <div style={{ background: "#111", border: "0.5px solid #222", borderRadius: "4px 16px 16px 16px", padding: "10px 14px", fontSize: 14, lineHeight: 1.7, color: "#ccc", whiteSpace: "pre-wrap" }}>
+                {msg.content}
+                {msg.trust && msg.trust.hallucinationRisk > 30 && (
+                  <span title={`Hallucination risk: ${msg.trust.hallucinationRisk}% — ${msg.trust.summary}`} style={{ marginLeft: 8, cursor: "help", fontSize: 13 }}>⚠️</span>
+                )}
+              </div>
+            </div>
+          );
+
+          if (msg.role === "assistant" && msg.type === "study") return (
+            <div key={i} style={{ display: "flex", gap: 10, maxWidth: "80%" }}>
+              <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#1e1e2e", border: "0.5px solid #333", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0, marginTop: 2 }}>A</div>
+              <div style={{ background: "#0f0f1a", border: "0.5px solid #2a2a4a", borderRadius: "4px 16px 16px 16px", padding: "12px 16px", fontSize: 14, lineHeight: 1.7, color: "#ccc", whiteSpace: "pre-wrap" }}>
+                <span style={{ display: "inline-block", fontSize: 11, background: "#1e1e3a", border: "0.5px solid #3a3a6a", color: "#818cf8", borderRadius: 6, padding: "2px 8px", marginBottom: 8 }}>
+                  {STUDY_MODES.find((m) => m.key === msg.mode)?.icon} {STUDY_MODES.find((m) => m.key === msg.mode)?.label}
+                </span>
+                <div>{msg.content}</div>
+              </div>
+            </div>
+          );
+
+          if (msg.role === "assistant" && msg.type === "eval") {
+            const r = msg.result;
+            return (
+              <div key={i} style={{ display: "flex", gap: 10 }}>
+                <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#1e1e2e", border: "0.5px solid #333", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0, marginTop: 2 }}>A</div>
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
+
+                  {/* Score card */}
+                  <div style={{ background: "#111", border: "0.5px solid #222", borderRadius: 16, padding: "16px 20px" }}>
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, marginBottom: 16 }}>
+                      <div>
+                        <div style={{ fontSize: 11, color: "#555", marginBottom: 4 }}>{r.subject}</div>
+                        <div style={{ fontSize: 36, fontWeight: 700, letterSpacing: "-0.03em" }}>{r.estimatedScore}</div>
+                      </div>
+                      <div style={{ fontSize: 13, color: "#999", lineHeight: 1.6, maxWidth: 420 }}>{r.overallCritique}</div>
+                    </div>
+                    {/* Breakdown bars */}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8 }}>
+                      {(["knowledge", "application", "analysis", "evaluation"] as const).map((key) => (
+                        <div key={key} style={{ background: "#0a0a0a", border: "0.5px solid #1a1a1a", borderRadius: 10, padding: "10px 12px" }}>
+                          <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>{key}</div>
+                          <div style={{ fontSize: 22, fontWeight: 700, color: scoreColor(r.breakdown[key].score) }}>{r.breakdown[key].score}/5</div>
+                          <div style={{ marginTop: 6, height: 3, background: "#1a1a1a", borderRadius: 2 }}>
+                            <div style={{ height: "100%", borderRadius: 2, background: scoreColor(r.breakdown[key].score), width: `${(r.breakdown[key].score / 5) * 100}%` }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Annotation overlay */}
+                  {r.annotations?.length > 0 && (
+                    <div style={{ background: "#0f0f0f", border: "0.5px solid #1e1e00", borderRadius: 12, padding: "14px 16px" }}>
+                      <div style={{ fontSize: 11, color: "#666", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}>Annotated answer</div>
+                      <AnnotationOverlay text={msg.answer} annotations={r.annotations} />
+                    </div>
+                  )}
+
+                  {/* Improvements */}
+                  {r.improvements?.length > 0 && (
+                    <div style={{ background: "#0d0d0d", border: "0.5px solid #1a1a1a", borderRadius: 12, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
+                      <div style={{ fontSize: 11, color: "#666", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 2 }}>How to improve</div>
+                      {r.improvements.map((imp, j) => (
+                        <div key={j} style={{ background: "#0a0a0a", border: "0.5px solid #1e2a1e", borderRadius: 10, padding: "10px 12px" }}>
+                          <div style={{ fontSize: 11, color: "#60a5fa", textTransform: "uppercase", marginBottom: 4 }}>{imp.category}</div>
+                          <div style={{ fontSize: 13, color: "#f87171", marginBottom: 4 }}>⚠ {imp.defect}</div>
+                          <div style={{ fontSize: 13, color: "#4ade80" }}>✓ {imp.fix}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Citations */}
+                  {r.citations && r.citations.length > 0 && (
+                    <div style={{ background: "#0d0d0d", border: "0.5px solid #1a1a1a", borderRadius: 12, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
+                      <div style={{ fontSize: 11, color: "#666", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 2 }}>Sources</div>
+                      {r.citations.map((c, j) => (
+                        <div key={j} style={{ background: "#0a0a0a", border: "0.5px solid #222", borderRadius: 10, padding: "10px 12px" }}>
+                          <div style={{ fontSize: 13, color: "#ccc" }}>"{c.claim}"</div>
+                          <div style={{ fontSize: 12, color: "#60a5fa", marginTop: 4 }}>📚 {c.source}</div>
+                          <div style={{ fontSize: 11, color: "#555", marginTop: 2 }}>{c.reference}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Silent trust warning */}
+                  {(msg as any).trust && (msg as any).trust.hallucinationRisk > 30 && (
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 8, background: "#1a1000", border: "0.5px solid #3a2000", borderRadius: 10, padding: "10px 14px" }}>
+                      <span>⚠️</span>
+                      <div>
+                        <div style={{ fontSize: 12, color: "#facc15", fontWeight: 500, marginBottom: 2 }}>Reliability check flagged</div>
+                        <div style={{ fontSize: 12, color: "#888" }}>{(msg as any).trust.summary}</div>
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+              </div>
+            );
+          }
+
+          return null;
+        })}
+
+        {/* Loading indicator */}
+        {loading && (
+          <div style={{ display: "flex", gap: 10, maxWidth: "80%" }}>
+            <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#1e1e2e", border: "0.5px solid #333", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0 }}>A</div>
+            <div style={{ background: "#111", border: "0.5px solid #222", borderRadius: "4px 16px 16px 16px", padding: "10px 16px", display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 13, color: "#555" }}>{loadingLabel || "Thinking..."}</span>
+              <span style={{ display: "inline-flex", gap: 3 }}>
+                {[0, 1, 2].map((d) => (
+                  <span key={d} style={{ width: 4, height: 4, borderRadius: "50%", background: "#444", animation: `pulse 1.2s ${d * 0.2}s infinite` }} />
+                ))}
+              </span>
+            </div>
+          </div>
+        )}
+
+        <div ref={bottomRef} />
+      </div>
+
+      {/* ── Option chips ── */}
+      {chips.length > 0 && !loading && (
+        <div style={{ padding: "8px 20px", display: "flex", gap: 6, flexWrap: "wrap", borderTop: "0.5px solid #1a1a1a" }}>
+          {chips.map((chip) => (
+            <button
+              key={chip}
+              onClick={() => send(chip)}
+              style={{ padding: "6px 14px", borderRadius: 20, fontSize: 13, cursor: "pointer", background: "transparent", border: "0.5px solid #2a2a2a", color: "#888", transition: "all 0.15s" }}
+              onMouseEnter={(e) => { (e.target as HTMLElement).style.borderColor = "#4a4a6a"; (e.target as HTMLElement).style.color = "#ccc"; }}
+              onMouseLeave={(e) => { (e.target as HTMLElement).style.borderColor = "#2a2a2a"; (e.target as HTMLElement).style.color = "#888"; }}
+            >
+              {chip}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ── Error ── */}
+      {error && (
+        <div style={{ margin: "0 20px 8px", background: "#1a0a0a", border: "0.5px solid #4a1a1a", borderRadius: 10, padding: "8px 14px", fontSize: 13, color: "#f87171" }}>
+          {error}
+        </div>
+      )}
+
+      {/* ── Input area ── */}
+      <div style={{ padding: "12px 20px 20px", borderTop: "0.5px solid #1a1a1a", background: "#0a0a0a" }}>
+
+        {/* Image preview + OCR controls */}
+        {imagePreview && (
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, padding: "8px 12px", background: "#111", border: "0.5px solid #222", borderRadius: 10 }}>
+            <img src={imagePreview} alt="" style={{ height: 48, borderRadius: 6, objectFit: "cover" }} />
+            <div style={{ display: "flex", gap: 6 }}>
+              <select
+                value={ocrTarget}
+                onChange={(e) => setOcrTarget(e.target.value as "question" | "answer")}
+                style={{ background: "#0a0a0a", border: "0.5px solid #333", borderRadius: 6, padding: "4px 8px", fontSize: 12, color: "#aaa" }}
+              >
+                <option value="answer">→ Answer</option>
+                <option value="question">→ Question</option>
+              </select>
+              <button onClick={runOCR} disabled={loading} style={{ padding: "4px 12px", borderRadius: 6, fontSize: 12, background: "#4f46e5", border: "none", color: "#fff", cursor: "pointer" }}>
+                Extract
+              </button>
+              <button onClick={() => { setImageFile(null); setImagePreview(null); }} style={{ padding: "4px 10px", borderRadius: 6, fontSize: 12, background: "transparent", border: "0.5px solid #333", color: "#666", cursor: "pointer" }}>
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div style={{ display: "flex", gap: 8, alignItems: "flex-end", background: "#111", border: "0.5px solid #222", borderRadius: 14, padding: "8px 8px 8px 14px" }}>
+          {/* Image upload */}
+          <button
+            onClick={() => fileRef.current?.click()}
+            title="Upload image for OCR"
+            style={{ padding: "6px 8px", borderRadius: 8, background: "transparent", border: "0.5px solid #2a2a2a", color: "#555", cursor: "pointer", fontSize: 16, flexShrink: 0, alignSelf: "flex-end", marginBottom: 1 }}
+          >
+            📎
+          </button>
+          <input ref={fileRef} type="file" accept="image/*" onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (!f) return;
+            setImageFile(f);
+            setImagePreview(URL.createObjectURL(f));
+          }} style={{ display: "none" }} />
+
+          {/* Textarea */}
+          <textarea
+            ref={textareaRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                send();
+              }
+            }}
+            placeholder={
+              !question
+                ? "Paste your exam question here..."
+                : phase === "has_question"
+                ? "Paste your answer to evaluate, or use a chip above..."
+                : "Ask a follow-up question..."
+            }
+            rows={1}
+            style={{
+              flex: 1, background: "transparent", border: "none", outline: "none", resize: "none", fontSize: 14, color: "#e5e5e5", lineHeight: 1.6,
+              fontFamily: "var(--font-geist-sans, sans-serif)", maxHeight: 160, overflowY: "auto",
+            }}
+            onInput={(e) => {
+              const t = e.target as HTMLTextAreaElement;
+              t.style.height = "auto";
+              t.style.height = Math.min(t.scrollHeight, 160) + "px";
+            }}
+          />
+
+          {/* Send */}
+          <button
+            onClick={() => send()}
+            disabled={loading || !input.trim()}
+            style={{
+              padding: "7px 14px", borderRadius: 10, fontSize: 13, fontWeight: 500, cursor: "pointer", flexShrink: 0, alignSelf: "flex-end",
+              background: input.trim() && !loading ? "#2563eb" : "#1a1a1a",
+              border: "none", color: input.trim() && !loading ? "#fff" : "#444", transition: "all 0.15s",
+            }}
+          >
+            Send
           </button>
         </div>
 
-        {/* ERROR */}
-        {error && (
-          <div className="bg-red-900/20 border border-red-700 rounded-2xl p-4 text-sm">{error}</div>
+        {quoteText && (
+          <div style={{ marginTop: 6, fontSize: 11, color: "#555" }}>Quoting: "{quoteText.slice(0, 60)}..."</div>
         )}
-
-        {/* RESULT */}
-        {result && (
-          <div className="space-y-5">
-
-            {/* Score Header */}
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 flex items-center justify-between">
-              <div>
-                <p className="text-gray-400 text-sm">{result.subject}</p>
-                <p className="text-5xl font-bold mt-1">{result.estimatedScore}</p>
-              </div>
-              <div className="text-right max-w-sm">
-                <p className="text-gray-300 text-sm leading-6">{result.overallCritique}</p>
-              </div>
-            </div>
-
-            {/* Smart Annotation Overlay */}
-            {result.annotations?.length > 0 && answer && (
-              <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6">
-                <h3 className="text-lg font-semibold mb-1">Smart Annotation Overlay</h3>
-                <p className="text-xs text-gray-500 mb-4">Hover over highlighted text to see feedback</p>
-                <div className="bg-black border border-gray-800 rounded-xl p-4">
-                  <AnnotationOverlay text={answer} annotations={result.annotations} />
-                </div>
-              </div>
-            )}
-
-            {/* Breakdown */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {(["knowledge", "application", "analysis", "evaluation"] as const).map((key) => (
-                <div key={key} className="bg-[#111111] border border-gray-800 rounded-2xl p-4">
-                  <p className="text-gray-400 text-xs uppercase tracking-wide mb-2">{key}</p>
-                  <p className={`text-3xl font-bold ${scoreColor(result.breakdown[key].score)}`}>
-                    {result.breakdown[key].score}/5
-                  </p>
-                  <p className="text-gray-400 text-xs mt-2 leading-5">{result.breakdown[key].feedback}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Annotations */}
-            {result.annotations?.length > 0 && (
-              <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 space-y-3">
-                <h3 className="text-lg font-semibold mb-1">Annotations</h3>
-                {result.annotations.map((a, i) => (
-                  <div key={i} className="bg-black border border-yellow-800/40 rounded-xl p-4 space-y-1">
-                    <p className="text-yellow-400 text-sm font-medium">"{a.keyword}"</p>
-                    <p className="text-gray-400 text-xs">{a.context}</p>
-                    <p className="text-gray-200 text-sm">💡 {a.suggestion}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Improvements */}
-            {result.improvements?.length > 0 && (
-              <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 space-y-3">
-                <h3 className="text-lg font-semibold mb-1">How to Improve</h3>
-                {result.improvements.map((imp, i) => (
-                  <div key={i} className="bg-black border border-blue-800/40 rounded-xl p-4 space-y-2">
-                    <p className="text-blue-400 text-xs uppercase tracking-wide font-medium">{imp.category}</p>
-                    <p className="text-red-300 text-sm">⚠ {imp.defect}</p>
-                    <p className="text-green-300 text-sm">✓ {imp.fix}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Citations */}
-            {result.citations && result.citations.length > 0 && (
-              <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 space-y-3">
-                <h3 className="text-lg font-semibold mb-1">Sources & References</h3>
-                {result.citations.map((c, i) => (
-                  <div key={i} className="bg-black border border-gray-700 rounded-xl p-4 space-y-1">
-                    <p className="text-gray-200 text-sm">"{c.claim}"</p>
-                    <p className="text-blue-400 text-xs">📚 {c.source}</p>
-                    <p className="text-gray-500 text-xs">{c.reference}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Trust Check */}
-            <TrustPanel question={question} answer={answer} subject={subject} />
-
-          </div>
-        )}
+        <div style={{ marginTop: 6, fontSize: 11, color: "#333", textAlign: "center" }}>
+          Enter to send · Shift+Enter for new line · Select text to quote
+        </div>
       </div>
-    </main>
+
+      <style>{`
+        @keyframes pulse { 0%,100%{opacity:.3} 50%{opacity:1} }
+      `}</style>
+    </div>
   );
 }

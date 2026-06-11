@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "iStudy AI",
+  "version": "1.0.0",
+  "description": "AI-powered exam feedback tool for A-Level students",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://ai-integration-app.vercel.app/*"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ]
+}

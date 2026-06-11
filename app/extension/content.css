@@ -1,0 +1,44 @@
+/* The Floating Trigger Bubble */
+.istudy-floating-bubble {
+  position: absolute;
+  z-index: 2147483647; /* Maximum z-index to stay on top of everything */
+  background: #7c3aed; /* Purple brand color */
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s ease;
+}
+
+.istudy-floating-bubble:hover {
+  transform: scale(1.1);
+}
+
+/* Injected Sidebar Panel */
+.istudy-sidebar-panel {
+  position: fixed;
+  top: 0;
+  right: -400px; /* Hidden off-screen by default */
+  width: 380px;
+  height: 100vh;
+  background: #000000;
+  color: #ffffff;
+  box-shadow: -4px 0 24px rgba(0,0,0,0.5);
+  z-index: 2147483646;
+  transition: right 0.3s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  border-left: 1px solid #1a1a1a;
+  display: flex;
+  flex-direction: column;
+}
+
+.istudy-sidebar-panel.open {
+  right: 0; /* Slide in smoothly */
+}
