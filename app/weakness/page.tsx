@@ -2,6 +2,19 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import {
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  Radar,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
 
 type SubjectSummary = {
   sessions: number;
@@ -15,93 +28,179 @@ type SubjectSummary = {
 };
 
 const LAYER_COLORS: Record<string, string> = {
-  knowledge: "bg-blue-500",
-  application: "bg-purple-500",
-  analysis: "bg-yellow-500",
-  evaluation: "bg-red-500",
+  knowledge: "#60a5fa",
+  application: "#a78bfa",
+  analysis: "#facc15",
+  evaluation: "#f87171",
+};
+
+const SUBJECT_ICONS: Record<string, string> = {
+  economics: "📈",
+  business: "🏢",
+  physics: "⚡",
+  maths: "∑",
+  history: "📜",
+  psychology: "🧠",
 };
 
 export default function WeaknessPage() {
   const [summary, setSummary] = useState<Record<string, SubjectSummary>>({});
   const [loading, setLoading] = useState(true);
+  const [activeSubject, setActiveSubject] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/weakness")
-      .then((res) => res.json())
-      .then((data) => { setSummary(data); setLoading(false); });
+      .then((r) => r.json())
+      .then((d) => {
+        setSummary(d);
+        const first = Object.keys(d)[0];
+        if (first) setActiveSubject(first);
+        setLoading(false);
+      });
   }, []);
 
   const subjects = Object.keys(summary);
+  const active = activeSubject ? summary[activeSubject] : null;
+
+  const radarData = active
+    ? [
+        { axis: "Knowledge", score: active.averages.knowledge },
+        { axis: "Application", score: active.averages.application },
+        { axis: "Analysis", score: active.averages.analysis },
+        { axis: "Evaluation", score: active.averages.evaluation },
+      ]
+    : [];
+
+  const weakest = active
+    ? Object.entries(active.averages).sort((a, b) => a[1] - b[1])[0]
+    : null;
+
+  const strongest = active
+    ? Object.entries(active.averages).sort((a, b) => b[1] - a[1])[0]
+    : null;
 
   return (
-    <main className="min-h-screen bg-black text-white">
-      <div className="max-w-5xl mx-auto p-6">
-        <div className="flex items-center justify-between mb-8">
+    <main style={{ minHeight: "100vh", background: "#0a0a0a", color: "#e5e5e5", fontFamily: "var(--font-geist-sans, sans-serif)" }}>
+      <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 20px" }}>
+
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
           <div>
-            <h1 className="text-4xl font-bold">Weakness Detection</h1>
-            <p className="text-gray-400 mt-2">Your knowledge gaps across subjects.</p>
+            <h1 style={{ fontSize: 26, fontWeight: 600, letterSpacing: "-0.02em", margin: 0 }}>Growth Analytics</h1>
+            <p style={{ fontSize: 13, color: "#555", marginTop: 4 }}>Track your strengths and weaknesses over time.</p>
           </div>
-          <Link href="/" className="bg-blue-600 hover:bg-blue-500 transition px-5 py-3 rounded-xl text-sm">
-            New Evaluation
+          <Link href="/" style={{ padding: "8px 16px", borderRadius: 10, fontSize: 13, background: "#1a1a2e", border: "0.5px solid #2563eb", color: "#60a5fa", textDecoration: "none" }}>
+            ← Back to chat
           </Link>
         </div>
 
-        {loading && <p className="text-gray-500">Loading...</p>}
+        {loading && <p style={{ color: "#555", fontSize: 14 }}>Loading...</p>}
 
         {!loading && subjects.length === 0 && (
-          <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-gray-500">
-            No data yet. Complete some evaluations first.
+          <div style={{ background: "#111", border: "0.5px solid #222", borderRadius: 16, padding: 32, textAlign: "center", color: "#555" }}>
+            <div style={{ fontSize: 36, marginBottom: 12 }}>📊</div>
+            <p style={{ fontSize: 15 }}>No data yet. Complete some evaluations first.</p>
+            <Link href="/" style={{ display: "inline-block", marginTop: 16, padding: "8px 20px", borderRadius: 10, background: "#2563eb", color: "#fff", textDecoration: "none", fontSize: 13 }}>
+              Start evaluating
+            </Link>
           </div>
         )}
 
-        <div className="space-y-5">
-          {subjects.map((subject) => {
-            const data = summary[subject];
-            const weakest = Object.entries(data.averages).sort((a, b) => a[1] - b[1])[0];
+        {!loading && subjects.length > 0 && (
+          <div style={{ display: "flex", gap: 20 }}>
 
-            return (
-              <div key={subject} className="bg-[#111111] border border-gray-800 rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-4">
+            {/* Subject sidebar */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 160 }}>
+              {subjects.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setActiveSubject(s)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 10, fontSize: 13, cursor: "pointer", textAlign: "left", transition: "all 0.15s",
+                    background: activeSubject === s ? "#1a1a2e" : "transparent",
+                    border: `0.5px solid ${activeSubject === s ? "#2563eb" : "#1a1a1a"}`,
+                    color: activeSubject === s ? "#93c5fd" : "#666",
+                  }}
+                >
+                  <span>{SUBJECT_ICONS[s] || "📚"}</span>
                   <div>
-                    <h2 className="text-xl font-semibold capitalize">{subject}</h2>
-                    <p className="text-gray-500 text-sm">{data.sessions} session{data.sessions > 1 ? "s" : ""}</p>
+                    <div style={{ fontWeight: 500, textTransform: "capitalize" }}>{s}</div>
+                    <div style={{ fontSize: 11, color: "#444" }}>{summary[s].sessions} session{summary[s].sessions > 1 ? "s" : ""}</div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xs text-gray-500 mb-1">Weakest area</p>
-                    <span className="text-red-400 text-sm font-medium capitalize">{weakest[0]} ({weakest[1]}/5)</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Main panel */}
+            {active && activeSubject && (
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
+
+                {/* Summary cards */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+                  <div style={{ background: "#111", border: "0.5px solid #1a1a1a", borderRadius: 12, padding: "14px 16px" }}>
+                    <div style={{ fontSize: 11, color: "#555", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>Sessions</div>
+                    <div style={{ fontSize: 28, fontWeight: 700 }}>{active.sessions}</div>
+                  </div>
+                  <div style={{ background: "#111", border: "0.5px solid #1a1a1a", borderRadius: 12, padding: "14px 16px" }}>
+                    <div style={{ fontSize: 11, color: "#555", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>Strongest</div>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: "#4ade80", textTransform: "capitalize" }}>{strongest?.[0]}</div>
+                    <div style={{ fontSize: 13, color: "#555" }}>{strongest?.[1]}/5 avg</div>
+                  </div>
+                  <div style={{ background: "#111", border: "0.5px solid #1a1a1a", borderRadius: 12, padding: "14px 16px" }}>
+                    <div style={{ fontSize: 11, color: "#555", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>Needs work</div>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: "#f87171", textTransform: "capitalize" }}>{weakest?.[0]}</div>
+                    <div style={{ fontSize: 13, color: "#555" }}>{weakest?.[1]}/5 avg</div>
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  {(["knowledge", "application", "analysis", "evaluation"] as const).map((key) => (
-                    <div key={key}>
-                      <div className="flex justify-between text-xs text-gray-400 mb-1">
-                        <span className="capitalize">{key}</span>
-                        <span>{data.averages[key]}/5</span>
-                      </div>
-                      <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full ${LAYER_COLORS[key]}`}
-                          style={{ width: `${(data.averages[key] / 5) * 100}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
+                {/* Radar chart */}
+                <div style={{ background: "#111", border: "0.5px solid #1a1a1a", borderRadius: 12, padding: "16px" }}>
+                  <div style={{ fontSize: 12, color: "#555", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>Capability tower</div>
+                  <ResponsiveContainer width="100%" height={220}>
+                    <RadarChart data={radarData}>
+                      <PolarGrid stroke="#1a1a1a" />
+                      <PolarAngleAxis dataKey="axis" tick={{ fill: "#666", fontSize: 12 }} />
+                      <Radar name="Score" dataKey="score" stroke="#4f46e5" fill="#4f46e5" fillOpacity={0.25} dot={{ fill: "#818cf8", r: 4 }} />
+                    </RadarChart>
+                  </ResponsiveContainer>
                 </div>
 
-                {data.recentDefects.length > 0 && (
-                  <div className="mt-4 flex gap-2 flex-wrap">
-                    {[...new Set(data.recentDefects)].map((d, i) => (
-                      <span key={i} className="text-xs bg-red-900/30 border border-red-800/50 text-red-300 px-2 py-1 rounded-lg">
-                        {d}
-                      </span>
+                {/* Score bars */}
+                <div style={{ background: "#111", border: "0.5px solid #1a1a1a", borderRadius: 12, padding: "16px" }}>
+                  <div style={{ fontSize: 12, color: "#555", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 14 }}>Average scores</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {(["knowledge", "application", "analysis", "evaluation"] as const).map((key) => (
+                      <div key={key}>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#666", marginBottom: 5 }}>
+                          <span style={{ textTransform: "capitalize" }}>{key}</span>
+                          <span style={{ color: LAYER_COLORS[key] }}>{active.averages[key]}/5</span>
+                        </div>
+                        <div style={{ height: 4, background: "#1a1a1a", borderRadius: 2 }}>
+                          <div style={{ height: "100%", borderRadius: 2, background: LAYER_COLORS[key], width: `${(active.averages[key] / 5) * 100}%`, transition: "width 0.6s ease" }} />
+                        </div>
+                      </div>
                     ))}
                   </div>
+                </div>
+
+                {/* Defect tags */}
+                {active.recentDefects.length > 0 && (
+                  <div style={{ background: "#111", border: "0.5px solid #1a1a1a", borderRadius: 12, padding: "16px" }}>
+                    <div style={{ fontSize: 12, color: "#555", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>Recurring weaknesses</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      {[...new Set(active.recentDefects)].map((d, i) => (
+                        <span key={i} style={{ fontSize: 12, background: "#1a0a0a", border: "0.5px solid #3a1a1a", color: "#f87171", borderRadius: 20, padding: "4px 12px" }}>
+                          {d}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 )}
+
               </div>
-            );
-          })}
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </main>
   );

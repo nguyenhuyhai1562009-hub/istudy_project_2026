@@ -10,20 +10,30 @@ type HistoryItem = {
   result: {
     estimatedScore?: string;
     overallCritique?: string;
+    breakdown?: {
+      knowledge: { score: number };
+      application: { score: number };
+      analysis: { score: number };
+      evaluation: { score: number };
+    };
   };
   createdAt: string;
 };
 
+const scoreColor = (s: number) =>
+  s >= 4 ? "#4ade80" : s >= 3 ? "#facc15" : "#f87171";
+
 export default function HistoryPage() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/history")
-      .then((res) => res.json())
-      .then((data) => setHistory(Array.isArray(data) ? data : []));
+      .then((r) => r.json())
+      .then((d) => { setHistory(Array.isArray(d) ? d : []); setLoading(false); });
   }, []);
 
-  const deleteChat = async (id: number) => {
+  const deleteItem = async (id: number) => {
     await fetch(`/api/history/${id}`, { method: "DELETE" });
     setHistory((prev) => prev.filter((item) => item.id !== id));
   };
@@ -34,59 +44,82 @@ export default function HistoryPage() {
   };
 
   return (
-    <main className="min-h-screen bg-black text-white">
-      <div className="max-w-5xl mx-auto p-6">
-        <div className="flex items-center justify-between mb-8">
+    <main style={{ minHeight: "100vh", background: "#0a0a0a", color: "#e5e5e5", fontFamily: "var(--font-geist-sans, sans-serif)" }}>
+      <div style={{ maxWidth: 800, margin: "0 auto", padding: "24px 20px" }}>
+
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
           <div>
-            <h1 className="text-4xl font-bold">History</h1>
-            <p className="text-gray-400 mt-2">Your saved evaluations.</p>
+            <h1 style={{ fontSize: 26, fontWeight: 600, letterSpacing: "-0.02em", margin: 0 }}>History</h1>
+            <p style={{ fontSize: 13, color: "#555", marginTop: 4 }}>Your past evaluations.</p>
           </div>
-          <div className="flex gap-3">
+          <div style={{ display: "flex", gap: 8 }}>
             {history.length > 0 && (
-              <button
-                onClick={clearAll}
-                className="bg-red-900/40 border border-red-800 hover:bg-red-900 transition px-4 py-3 rounded-xl text-sm"
-              >
-                Clear All
+              <button onClick={clearAll} style={{ padding: "8px 14px", borderRadius: 10, fontSize: 13, background: "transparent", border: "0.5px solid #3a1a1a", color: "#f87171", cursor: "pointer" }}>
+                Clear all
               </button>
             )}
-            <Link href="/" className="bg-blue-600 hover:bg-blue-500 transition px-5 py-3 rounded-xl text-sm">
-              New Chat
+            <Link href="/" style={{ padding: "8px 16px", borderRadius: 10, fontSize: 13, background: "#1a1a2e", border: "0.5px solid #2563eb", color: "#60a5fa", textDecoration: "none" }}>
+              ← New chat
             </Link>
           </div>
         </div>
 
-        <div className="space-y-4">
-          {history.length === 0 && (
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-gray-500">
-              No saved evaluations yet.
-            </div>
-          )}
+        {loading && <p style={{ color: "#555", fontSize: 14 }}>Loading...</p>}
+
+        {!loading && history.length === 0 && (
+          <div style={{ background: "#111", border: "0.5px solid #222", borderRadius: 16, padding: 32, textAlign: "center", color: "#555" }}>
+            <div style={{ fontSize: 36, marginBottom: 12 }}>📭</div>
+            <p style={{ fontSize: 15 }}>No evaluations yet.</p>
+          </div>
+        )}
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {history.map((item) => (
-            <div key={item.id} className="bg-[#111111] border border-gray-800 rounded-2xl p-6">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
+            <div key={item.id} style={{ background: "#111", border: "0.5px solid #1a1a1a", borderRadius: 14, padding: "16px 18px" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
                     {item.subject && (
-                      <span className="text-xs bg-blue-900/40 border border-blue-800 text-blue-300 px-2 py-1 rounded-lg">
+                      <span style={{ fontSize: 11, background: "#1a1a2e", border: "0.5px solid #2a2a4a", color: "#818cf8", borderRadius: 20, padding: "2px 10px" }}>
                         {item.subject}
                       </span>
                     )}
                     {item.result?.estimatedScore && (
-                      <span className="text-xs bg-green-900/40 border border-green-800 text-green-300 px-2 py-1 rounded-lg">
+                      <span style={{ fontSize: 12, fontWeight: 600, color: "#4ade80" }}>
                         {item.result.estimatedScore}
                       </span>
                     )}
+                    <span style={{ fontSize: 11, color: "#444", marginLeft: "auto" }}>
+                      {new Date(item.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                    </span>
                   </div>
-                  <h2 className="text-base font-semibold mb-2 text-gray-100 line-clamp-2">{item.question}</h2>
-                  <p className="text-gray-400 text-sm leading-6 line-clamp-3">{item.result?.overallCritique}</p>
-                  <p className="text-gray-600 text-xs mt-3">{new Date(item.createdAt).toLocaleString()}</p>
+                  <p style={{ fontSize: 14, color: "#ccc", margin: "0 0 8px", lineHeight: 1.5, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+                    {item.question}
+                  </p>
+                  {item.result?.overallCritique && (
+                    <p style={{ fontSize: 12, color: "#555", lineHeight: 1.6, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+                      {item.result.overallCritique}
+                    </p>
+                  )}
+                  {/* Mini score bars */}
+                  {item.result?.breakdown && (
+                    <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
+                      {(["knowledge", "application", "analysis", "evaluation"] as const).map((key) => (
+                        <div key={key} style={{ flex: 1, textAlign: "center" }}>
+                          <div style={{ fontSize: 10, color: "#444", marginBottom: 3 }}>{key.slice(0, 2).toUpperCase()}</div>
+                          <div style={{ height: 3, background: "#1a1a1a", borderRadius: 2 }}>
+                            <div style={{ height: "100%", borderRadius: 2, background: scoreColor(item.result.breakdown![key].score), width: `${(item.result.breakdown![key].score / 5) * 100}%` }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
-              <div className="mt-4 flex gap-3">
+              <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
                 <button
-                  onClick={() => deleteChat(item.id)}
-                  className="bg-red-600 hover:bg-red-500 transition px-4 py-2 rounded-xl text-sm"
+                  onClick={() => deleteItem(item.id)}
+                  style={{ padding: "5px 12px", borderRadius: 8, fontSize: 12, background: "transparent", border: "0.5px solid #2a1a1a", color: "#f87171", cursor: "pointer" }}
                 >
                   Delete
                 </button>
