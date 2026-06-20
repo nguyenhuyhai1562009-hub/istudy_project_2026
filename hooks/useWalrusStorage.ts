@@ -23,8 +23,9 @@ const INDEX_KEY = "walrus_blob_index";
 
 type BlobIndexEntry = { blobId: string; subject: string; createdAt: string };
 
+// Hàm kiểm tra trình duyệt an toàn hơn
 function isBrowser() {
-  return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
+  return typeof window !== "undefined" && !!window.localStorage;
 }
 
 function getBlobIndex(): BlobIndexEntry[] {
@@ -74,12 +75,16 @@ async function fetchFromWalrus(blobId: string): Promise<LearningRecord | null> {
 
 export function useWalrusStorage() {
   async function saveRecord(address: string | null, record: Omit<LearningRecord, "userId">): Promise<string | null> {
-    if (!isBrowser()) return null;
+    // Không cần check isBrowser ở đây vì hàm uploadToWalrus không dùng localStorage
     try {
       const fullRecord: LearningRecord = { ...record, userId: address || "anonymous" };
       const blobId = await uploadToWalrus(fullRecord);
       if (!blobId) return null;
-      saveBlobIndex({ blobId, subject: record.subject, createdAt: record.createdAt });
+      
+      // Chỉ lưu index nếu đang ở trình duyệt
+      if (isBrowser()) {
+        saveBlobIndex({ blobId, subject: record.subject, createdAt: record.createdAt });
+      }
       return blobId;
     } catch (e) {
       console.warn("saveRecord failed:", e);

@@ -41,29 +41,29 @@ export async function fetchFromWalrus(blobId: string): Promise<LearningRecord | 
   }
 }
 
-// ── Local index — safely guarded for SSR ──────────────────────────────────────
 const INDEX_KEY = "walrus_blob_index";
-
 type BlobIndexEntry = { blobId: string; subject: string; createdAt: string };
 
-const isBrowser = typeof window !== "undefined" && typeof window.localStorage !== "undefined";
+function canUseStorage(): boolean {
+  return typeof window !== "undefined" && !!window.localStorage;
+}
 
 export function saveBlobIndexLocal(entry: BlobIndexEntry) {
-  if (!isBrowser) return;
+  if (!canUseStorage()) return;
   try {
-    const raw = localStorage.getItem(INDEX_KEY);
+    const raw = window.localStorage.getItem(INDEX_KEY);
     const list: BlobIndexEntry[] = raw ? JSON.parse(raw) : [];
     list.unshift(entry);
-    localStorage.setItem(INDEX_KEY, JSON.stringify(list.slice(0, 200)));
+    window.localStorage.setItem(INDEX_KEY, JSON.stringify(list.slice(0, 200)));
   } catch (e) {
     console.warn("Failed to save blob index locally:", e);
   }
 }
 
 export function getBlobIndexLocal(): BlobIndexEntry[] {
-  if (!isBrowser) return [];
+  if (!canUseStorage()) return [];
   try {
-    const raw = localStorage.getItem(INDEX_KEY);
+    const raw = window.localStorage.getItem(INDEX_KEY);
     return raw ? JSON.parse(raw) : [];
   } catch {
     return [];
