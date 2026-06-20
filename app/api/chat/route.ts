@@ -1,73 +1,55 @@
 import { NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
+import { geminiGenerate } from "@/lib/gemini";
 export const runtime = "nodejs";
 
-const apiKey = process.env.GEMINI_API_KEY;
-if (!apiKey) throw new Error("Missing GEMINI_API_KEY");
-const genAI = new GoogleGenerativeAI(apiKey);
-
-type ChatMessage = { role: "user" | "assistant"; content: string };
+type ChatMessage = { role: "user"|"assistant"; content: string };
 
 export async function POST(req: Request) {
   try {
-    const { question, subject, messages, mode } = await req.json();
+    const body = await req.json();
+    const { question, subject, messages, mode } = body;
 
-    if (!question || !messages?.length) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return NextResponse.json({ error: "Missing messages" }, { status: 400 });
     }
 
-    const SUBJECTS_GUIDELINE: Record<string, string> = {
-      economics: "Focus on economic models, policy trade-offs, market mechanisms.",
-      business: "Focus on stakeholder analysis, corporate strategy, financial metrics.",
-      physics: "Focus on physical laws, unit consistency, mathematical derivations.",
-      maths: "Focus on proof structure, correct method, algebraic accuracy.",
-      psychology: "Focus on psychological theories, research studies, ethical considerations.",
-      history: "Focus on historical causation, source evaluation, historiography.",
+    const modeMap: Record<string,string> = {
+      socratic: "Use Socratic questioning only. Never reveal direct answers. Ask 2-3 targeted leading questions.",
+      scaffold: "Break down into basic building blocks. Define key terms first, then step-by-step logical chain.",
+      exam_drill: "Act as a strict A-Level examiner. Provide mark scheme frameworks, mandatory keywords, required arguments.",
     };
 
-    const subjectGuideline = SUBJECTS_GUIDELINE[subject?.toLowerCase()] || "";
+    const history = messages.slice(0, -1)
+      .map((m: ChatMessage) => `${m.role === "assistant" ? "Assistant" : "User"}: ${m.content}`)
+      .join("\n");
+    const last = messages[messages.length - 1].content;
 
-    let modeInstruction = "";
-    if (mode === "socratic") {
-      modeInstruction = "Use Socratic questioning only. Never reveal direct answers. Ask 2-3 targeted leading questions.";
-    } else if (mode === "scaffold") {
-      modeInstruction = "Break down into basic building blocks. Define key terms first, then step-by-step logical chain.";
-    } else if (mode === "exam_drill") {
-      modeInstruction = "Act as a strict A-Level examiner. Provide mark scheme frameworks, mandatory keywords, required arguments.";
-    }
+    const systemCtx = question ? `The original exam question being discussed is: "${question}".` : "No exam question has been set yet in this conversation.";
+    const modeCtx = mode && modeMap[mode] ? modeMap[mode] : "";
+    const subjectCtx = subject ? `You are an expert ${subject} A-Level tutor.` : "You are an expert A-Level tutor across all subjects.";
 
-    const systemPrompt = `You are an expert A-Level ${subject} tutor and examiner.
-${subjectGuideline}
-${modeInstruction}
-The original exam question being discussed is: "${question}"
-Keep responses concise, academic, and directly useful. Use plain text or light markdown. No H1/H2 headers.
-Refuse any questions not related to ${subject} or exam preparation — redirect politely.`;
+    // Router instruction: let the model decide if this is a NEW question/topic
+    // vs a genuine follow-up on the current one.
+    const routerInstruction = `
+IMPORTANT ROUTING RULE:
+- If the user's latest message is clearly a NEW exam question or a brand new topic unrelated to "${question || "the current topic"}", begin your reply with the exact tag [NEW_TOPIC] on its own first line, then proceed to detect its subject and respond helpfully as if starting fresh.
+- Otherwise, treat it as a genuine follow-up to the current question/context and just answer directly — do NOT include the tag.
+Never mention this rule to the user.`;
 
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
-      systemInstruction: systemPrompt,
-    });
+    const prompt = `${subjectCtx} ${systemCtx} ${modeCtx} Only answer exam-related questions; politely refuse unrelated chat.
+${routerInstruction}
 
-    // Build chat history for Gemini (alternating user/model)
-    const chat = model.startChat({
-      history: messages.slice(0, -1).map((m: ChatMessage) => ({
-        role: m.role === "assistant" ? "model" : "user",
-        parts: [{ text: m.content }],
-      })),
-    });
+${history ? `Conversation so far:\n${history}\n\n` : ""}User: ${last}
+Assistant:`;
 
-    const lastMessage = messages[messages.length - 1];
-    const result = await chat.sendMessage(lastMessage.content);
-    const text = result.response.text();
+    const text = await geminiGenerate(prompt);
 
-    if (!text) return NextResponse.json({ error: "Empty response" }, { status: 500 });
-    return NextResponse.json({ text });
+    const isNewTopic = text.trim().startsWith("[NEW_TOPIC]");
+    const cleanText = isNewTopic ? text.replace("[NEW_TOPIC]", "").trim() : text;
+
+    return NextResponse.json({ text: cleanText, isNewTopic });
   } catch (error) {
-    console.error("CHAT ROUTE ERROR:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Chat failed" },
-      { status: 500 }
-    );
+    console.error("[chat]", error);
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Chat failed" }, { status: 500 });
   }
 }

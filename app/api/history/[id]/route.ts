@@ -1,20 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
-import { kv } from "@vercel/kv";
+import { redis } from "@/lib/redis"; // Import từ file bạn vừa sửa ở trên
 
 export async function DELETE(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  // Đợi để lấy id từ params
   const { id } = await context.params;
+
+  // Kiểm tra dữ liệu đầu vào (Frontend thường gửi nhầm 'undefined' là string)
+  if (!id || id === 'undefined' || id === 'null') {
+    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+  }
+
   try {
-    const history = await kv.lrange<any>("history", 0, -1);
+    // Lấy toàn bộ danh sách
+    const history = await redis.lrange<any>("history", 0, -1);
+    
+    // Lọc bỏ phần tử có id trùng khớp
     const updated = history.filter((item) => String(item.id) !== id);
-    await kv.del("history");
+    
+    // Cập nhật lại vào Redis (Xóa cũ, ghi mới)
+    await redis.del("history");
     if (updated.length > 0) {
-      await kv.lpush("history", ...updated.reverse());
+      // Dùng spread operator để đẩy danh sách đã lọc vào
+      await redis.rpush("history", ...updated);
     }
+    
     return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json({ success: false }, { status: 500 });
+    console.error("Delete Error:", error);
+    return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
   }
 }
