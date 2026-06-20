@@ -51,17 +51,7 @@ OUTPUT:
     const parsed = extractJSON(text);
     if (!parsed) return NextResponse.json({ error: "Invalid JSON from Gemini.", raw: text }, { status: 500 });
 
-    // Save to KV in background — don't block response if KV fails
-    try {
-      const { kv } = await import("@vercel/kv");
-      const history = await kv.lrange<any>("history", 0, -1);
-      history.unshift({ id: Date.now(), question, response1, subject, result: parsed, createdAt: new Date().toISOString() });
-      await kv.del("history");
-      await kv.lpush("history", ...history);
-    } catch (kvErr) {
-      console.warn("[evaluate] KV save failed (non-critical):", kvErr);
-    }
-
+    // KV removed — history is stored client-side via Walrus
     return NextResponse.json(parsed);
   } catch (error) {
     console.error("[evaluate] ERROR:", error);
