@@ -1,9 +1,5 @@
 import { kv } from "@vercel/kv";
 
-// Vercel KV sử dụng giao thức HTTP/REST API, 
-// không bị chặn bởi cổng TCP 6379 tại Việt Nam.
-// Cấu hình được tự động lấy từ biến môi trường KV_REST_API_URL và KV_REST_API_TOKEN.
-
 const redisMock = {
   lpush: async (key: string, value: string) => {
     try {
@@ -20,7 +16,9 @@ const redisMock = {
       console.warn("KV lrange failed, returning empty:", e);
       return [];
     }
-  }
+  },
 };
 
+// Export cả hai kiểu để Vercel không bao giờ báo lỗi module
+export const redis = redisMock;
 export default redisMock;
