@@ -1,7 +1,4 @@
 // lib/walrus.ts
-// Walrus Protocol - decentralized storage for learning history.
-// Replaces KV/Redis entirely for Analytics to avoid Vietnam DNS blocking on upstash.io.
-
 const WALRUS_PUBLISHER = "https://publisher.walrus-testnet.walrus.space";
 const WALRUS_AGGREGATOR = "https://aggregator.walrus-testnet.walrus.space";
 
@@ -44,12 +41,15 @@ export async function fetchFromWalrus(blobId: string): Promise<LearningRecord | 
   }
 }
 
-// ── Local index of blobIds (no backend needed — stored in browser localStorage) ──
+// ── Local index — safely guarded for SSR ──────────────────────────────────────
 const INDEX_KEY = "walrus_blob_index";
 
 type BlobIndexEntry = { blobId: string; subject: string; createdAt: string };
 
+const isBrowser = typeof window !== "undefined" && typeof window.localStorage !== "undefined";
+
 export function saveBlobIndexLocal(entry: BlobIndexEntry) {
+  if (!isBrowser) return;
   try {
     const raw = localStorage.getItem(INDEX_KEY);
     const list: BlobIndexEntry[] = raw ? JSON.parse(raw) : [];
@@ -61,6 +61,7 @@ export function saveBlobIndexLocal(entry: BlobIndexEntry) {
 }
 
 export function getBlobIndexLocal(): BlobIndexEntry[] {
+  if (!isBrowser) return [];
   try {
     const raw = localStorage.getItem(INDEX_KEY);
     return raw ? JSON.parse(raw) : [];
