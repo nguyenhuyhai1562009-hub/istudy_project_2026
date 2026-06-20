@@ -3,9 +3,9 @@
 
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import AnnotationOverlay from "@/components/AnnotationOverlay";
-import { useWalrusStorage } from "@/hooks/useWalrusStorage";
-import StudyModePicker from "@/components/StudyModePicker";
+import AnnotationOverlay from "../components/AnnotationOverlay";
+import { useWalrusStorage } from "../hooks/useWalrusStorage";
+import StudyModePicker from "../components/StudyModePicker";
 import {
   RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer,
   LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid,
